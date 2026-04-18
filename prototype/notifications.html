@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>通知中心 — SoulDoc</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.notif-layout { display:grid; grid-template-columns:1fr 300px; height:calc(100vh - var(--topbar-h)); overflow:hidden; }
+.notif-main { overflow-y:auto; }
+.notif-sidebar { border-left:1px solid var(--border); background:var(--panel); overflow-y:auto; padding:20px; }
+.notif-tabs { display:flex; gap:0; border-bottom:1px solid var(--border); background:var(--panel); padding:0 20px; }
+.notif-tab { padding:12px 16px; font-size:13px; font-weight:600; color:var(--muted); cursor:pointer; border-bottom:2px solid transparent; white-space:nowrap; display:flex; align-items:center; gap:6px; }
+.notif-tab.active { color:var(--primary); border-bottom-color:var(--primary); }
+.notif-group { }
+.notif-group-header { padding:10px 20px; font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; background:var(--bg); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:1; }
+.notif-item { display:flex; gap:12px; padding:14px 20px; border-bottom:1px solid var(--border); cursor:pointer; transition:background .15s; position:relative; }
+.notif-item:hover { background:#f8fafc; }
+.notif-item.unread { background:#fafaf9; }
+.notif-item.unread::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--primary); }
+.notif-avatar { width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; position:relative; }
+.notif-type-icon { position:absolute; bottom:-2px; right:-2px; width:16px; height:16px; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center; font-size:8px; border:1px solid var(--border); }
+.notif-body { flex:1; }
+.notif-body .nb-title { font-size:13px; color:var(--text); line-height:1.4; }
+.notif-body .nb-title strong { font-weight:700; }
+.notif-body .nb-meta { font-size:11px; color:var(--muted); margin-top:4px; display:flex; gap:10px; }
+.notif-body .nb-preview { font-size:12px; color:var(--muted); margin-top:6px; background:var(--bg); border-radius:6px; padding:6px 10px; border-left:3px solid var(--border); }
+.notif-actions-inline { display:flex; gap:6px; margin-top:8px; }
+.notif-item .ni-time { font-size:11px; color:var(--muted); flex-shrink:0; }
+.notif-unread-dot { width:8px; height:8px; border-radius:50%; background:var(--primary); flex-shrink:0; margin-top:5px; }
+.empty-notif { text-align:center; padding:60px 20px; color:var(--muted); }
+.empty-notif .en-icon { font-size:48px; margin-bottom:12px; }
+.notif-pref-row { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border); }
+.notif-pref-row:last-child { border-bottom:none; }
+.notif-pref-row .npr-info { flex:1; }
+.notif-pref-row .npr-info h5 { font-size:12px; font-weight:600; color:var(--text); }
+.notif-pref-row .npr-info p { font-size:11px; color:var(--muted); }
+.notif-pref-row .npr-icon { font-size:18px; width:32px; }
+.channel-chips { display:flex; gap:4px; }
+.channel-chip { padding:2px 8px; border-radius:10px; font-size:10px; font-weight:600; border:1px solid var(--border); cursor:pointer; }
+.channel-chip.on { background:var(--primary); color:#fff; border-color:var(--primary); }
+.summary-card { background:linear-gradient(135deg,#4f46e5,#2563eb); color:#fff; border-radius:var(--radius); padding:16px; margin-bottom:16px; }
+.summary-card h4 { font-size:13px; font-weight:700; margin-bottom:10px; opacity:.9; }
+.summary-nums { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.sn-item { text-align:center; }
+.sn-item .sni-num { font-size:22px; font-weight:800; }
+.sn-item .sni-label { font-size:10px; opacity:.8; }
+</style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">SD</div>
+    <div class="brand-text"><h1>SoulDoc</h1><p>AI 原生知识工作台</p></div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">主导航</div>
+    <a class="nav-item" href="index.html"><span class="nav-icon">🏠</span>首页</a>
+    <a class="nav-item" href="spaces.html"><span class="nav-icon">🗂️</span>知识空间</a>
+    <a class="nav-item" href="search.html"><span class="nav-icon">🔍</span>搜索</a>
+    <a class="nav-item active" href="notifications.html"><span class="nav-icon">🔔</span>通知中心 <span class="nav-badge">5</span></a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">当前空间 · SoulDoc Demo</div>
+    <a class="nav-item" href="space.html"><span class="nav-icon">📌</span>空间概览</a>
+    <a class="nav-item" href="docs.html"><span class="nav-icon">📚</span>文档中心</a>
+    <a class="nav-item" href="editor.html"><span class="nav-icon">✏️</span>编辑器</a>
+    <a class="nav-item" href="change-request.html"><span class="nav-icon">🧾</span>变更请求</a>
+    <a class="nav-item" href="members.html"><span class="nav-icon">👥</span>成员权限</a>
+    <a class="nav-item" href="tags.html"><span class="nav-icon">🏷️</span>标签管理</a>
+    <a class="nav-item" href="files.html"><span class="nav-icon">📁</span>文件管理</a>
+    <a class="nav-item" href="seo.html"><span class="nav-icon">🌐</span>发布 & SEO</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">智能与语言</div>
+    <a class="nav-item" href="language.html"><span class="nav-icon">🌍</span>语言版本</a>
+    <a class="nav-item" href="ai-tasks.html"><span class="nav-icon">✨</span>AI 任务中心</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">平台</div>
+    <a class="nav-item" href="developer.html"><span class="nav-icon">🛠️</span>开发者平台</a>
+    <a class="nav-item" href="settings.html"><span class="nav-icon">⚙️</span>系统设置</a>
+  </div>
+  <div class="sidebar-bottom">
+    <a class="nav-item" href="profile.html"><div class="avatar avatar-sm" style="background:var(--gradient)">A</div><span class="identity-inline">Admin <span class="identity-badge human">人类</span></span></a>
+  </div>
+</aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-left">
+        <h2 style="font-size:16px;font-weight:700;color:var(--text);">◌ 通知中心</h2>
+        <span class="badge badge-danger" style="margin-left:8px;">12</span>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-ghost btn-sm" onclick="markAllRead()">✓ 全部标为已读</button>
+        <button class="btn btn-ghost btn-sm" onclick="showTab('preferences')">⚙ 通知设置</button>
+        <div class="avatar" title="当前用户">U</div>
+      </div>
+    </header>
+
+    <div class="notif-layout">
+      <div class="notif-main" id="notif-main">
+        <!-- Tabs -->
+        <div class="notif-tabs" id="notif-tabs">
+          <div class="notif-tab active" onclick="showTab('all')">全部 <span class="badge badge-danger" style="font-size:10px;">12</span></div>
+          <div class="notif-tab" onclick="showTab('mention')">@提及 <span class="badge badge-danger" style="font-size:10px;">3</span></div>
+          <div class="notif-tab" onclick="showTab('comment')">评论 <span class="badge badge-danger" style="font-size:10px;">5</span></div>
+          <div class="notif-tab" onclick="showTab('cr')">变更请求</div>
+          <div class="notif-tab" onclick="showTab('publish')">发布</div>
+          <div class="notif-tab" onclick="showTab('ai')">AI 任务</div>
+          <div class="notif-tab" onclick="showTab('system')">系统</div>
+        </div>
+
+        <!-- All tab content -->
+        <div id="tab-all">
+          <div class="notif-group-header">今天</div>
+
+          <!-- Mention -->
+          <div class="notif-item unread" onclick="openNotif(this)">
+            <div class="notif-unread-dot"></div>
+            <div class="notif-avatar" style="background:#ede9fe;color:#4f46e5;">
+              W
+              <div class="notif-type-icon" style="background:#ede9fe;">@</div>
+            </div>
+            <div class="notif-body">
+              <div class="nb-title"><strong class="identity-inline">王芳 <span class="identity-badge human">人类</span></strong> 在 <strong>SoulDoc 产品设计</strong> 中提及了你</div>
+              <div class="nb-preview">"@张磊 你来确认一下这里的权限矩阵是否准确？"</div>
+              <div class="notif-actions-inline">
+                <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();window.location='docs.html'">查看文档</button>
+                <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();showToast('已忽略','info')">忽略</button>
+              </div>
+              <div class="nb-meta"><span>10分钟前</span><span>◫ SoulDoc 产品设计</span></div>
+            </div>
+            <span class="ni-time">10:14</span>
+          </div>
+
+          <!-- CR review request -->
+          <div class="notif-item unread" onclick="openNotif(this)">
+            <div class="notif-unread-dot"></div>
+            <div class="notif-avatar" style="background:#dbeafe;color:#1d4ed8;">
+              L
+              <div class="notif-type-icon" style="background:#dbeafe;">⑂</div>
+            </div>
+            <div class="notif-body">
+              <div class="nb-title"><strong class="identity-inline">李明 <span class="identity-badge human">人类</span></strong> 请求你审阅 <strong>CR#14 — 新增 API 示例</strong></div>
+              <div class="nb-preview">变更了 3 个文档块，新增约 240 字</div>
+              <div class="notif-actions-inline">
+                <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();window.location='change-request.html'">去审阅</button>
+                <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();">稍后</button>
+              </div>
+              <div class="nb-meta"><span>32分钟前</span><span>⑂ 变更请求</span></div>
+            </div>
+            <span class="ni-time">09:52</span>
+          </div>
+
+          <!-- Comment -->
+          <div class="notif-item unread" onclick="openNotif(this)">
+            <div class="notif-unread-dot"></div>
+            <div class="notif-avatar" style="background:#d1fae5;color:#065f46;">
+              Z
+              <div class="notif-type-icon" style="background:#d1fae5;">💬</div>
+            </div>
+            <div class="notif-body">
+              <div class="nb-title"><strong class="identity-inline">赵敏 <span class="identity-badge human">人类</span></strong> 评论了你的文档 <strong>AI 工具配置设计</strong></div>
+              <div class="nb-preview">"这个 L4 RAG 的实现方案很好！可以考虑加入 HyDE 检索策略..."</div>
+              <div class="notif-actions-inline">
+                <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();window.location='docs.html'">回复</button>
+              </div>
+              <div class="nb-meta"><span>1小时前</span><span>◻ AI 工具配置设计</span></div>
+            </div>
+            <span class="ni-time">09:24</span>
+          </div>
+
+          <!-- AI task done -->
+          <div class="notif-item unread" onclick="openNotif(this)">
+            <div class="notif-unread-dot"></div>
+            <div class="notif-avatar" style="background:linear-gradient(135deg,#4f46e5,#2563eb);color:#fff;">
+              ✦
+              <div class="notif-type-icon">⟳</div>
+            </div>
+            <div class="notif-body">
+              <div class="nb-title">AI 任务完成 — <strong>批量向量嵌入</strong></div>
+              <div class="nb-preview">已为 148 个文档块生成向量，语义搜索功能已更新</div>
+              <div class="notif-actions-inline">
+                <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();window.location='ai-tasks.html'">查看任务</button>
+              </div>
+              <div class="nb-meta"><span>1小时前</span><span>✦ AI 任务中心</span></div>
+            </div>
+            <span class="ni-time">09:12</span>
+          </div>
+
+          <!-- Invite accepted -->
+          <div class="notif-item" onclick="openNotif(this)">
+            <div class="notif-avatar" style="background:#fef3c7;color:#92400e;">
+              C
+              <div class="notif-type-icon" style="background:#fef3c7;">◎</div>
+            </div>
+            <div class="notif-body">
+              <div class="nb-title"><strong>陈华</strong> 接受了你的邀请并加入了空间</div>
+              <div class="nb-meta"><span>2小时前</span><span>◫ 工程技术空间</span></div>
+            </div>
+            <span class="ni-time">08:48</span>
+          </div>
+
+          <!-- Publish success -->
+          <div class="notif-item" onclick="openNotif(this)">
+            <div class="notif-avatar" style="background:#ecfdf5;color:#065f46;">
+              📡
+              <div class="notif-type-icon" style="background:#ecfdf5;">✓</div>
+            </div>
+            <div class="notif-body">
+              <div class="nb-title">文档 <strong>SoulDoc 快速开始</strong> 发布成功</div>
+              <div class="nb-preview">已发布到发布站点，URL: docs.souldoc.io/quickstart</div>
+              <div class="notif-actions-inline">
+                <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();window.location='seo.html'">查看发布</button>
+              </div>
+              <div class="nb-meta"><span>3小时前</span><span>📡 SEO &amp; 发布</span></div>
+            </div>
+            <span class="ni-time">07:30</span>
+          </div>
+
+          <div class="notif-group-header">昨天</div>
+
+          <div class="notif-item" onclick="openNotif(this)">
+            <div class="notif-avatar" style="background:#fce7f3;color:#9d174d;">
+              L
+              <div class="notif-type-icon">@</div>
+            </div>
+            <div class="notif-body">
+              <div class="nb-title"><strong class="identity-inline">李明 <span class="identity-badge human">人类</span></strong> 在评论中提及了你</div>
+              <div class="nb-preview">"@张磊 这里需要你最终确认一下"</div>
+              <div class="nb-meta"><span>昨天 17:22</span><span>◻ 版本控制说明</span></div>
+            </div>
+            <span class="ni-time">昨天</span>
+          </div>
+
+          <div class="notif-item" onclick="openNotif(this)">
+            <div class="notif-avatar" style="background:#ede9fe;color:#4f46e5;">
+              ⑂
+              <div class="notif-type-icon" style="background:#d1fae5;color:#059669;">✓</div>
+            </div>
+            <div class="notif-body">
+              <div class="nb-title">你的 <strong>CR#13</strong> 已被合并</div>
+              <div class="nb-preview">审阅人：<span class="identity-inline">王芳 <span class="identity-badge human">人类</span></span> · 新增内容已合并到主分支</div>
+              <div class="nb-meta"><span>昨天 14:10</span><span>⑂ 变更请求</span></div>
+            </div>
+            <span class="ni-time">昨天</span>
+          </div>
+
+          <div class="notif-item" onclick="openNotif(this)">
+            <div class="notif-avatar" style="background:#fef2f2;color:#b91c1c;">
+              ⚠
+              <div class="notif-type-icon" style="background:#fef2f2;">!</div>
+            </div>
+            <div class="notif-body">
+              <div class="nb-title">系统通知 — <strong>AI API 配额预警</strong></div>
+              <div class="nb-preview">今日翻译 API 使用量已达配额的 80%，请注意</div>
+              <div class="notif-actions-inline">
+                <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();window.location='settings.html'">查看配额</button>
+              </div>
+              <div class="nb-meta"><span>昨天 09:00</span><span>⚙ 系统</span></div>
+            </div>
+            <span class="ni-time">昨天</span>
+          </div>
+
+          <div class="notif-group-header">更早</div>
+
+          <div class="notif-item" onclick="openNotif(this)">
+            <div class="notif-avatar" style="background:#f0f9ff;color:#0369a1;">
+              G
+            </div>
+            <div class="notif-body">
+              <div class="nb-title">Git Sync 同步完成 — <strong>工程技术</strong> 空间</div>
+              <div class="nb-preview">从 GitHub 同步了 12 个文件的变更</div>
+              <div class="nb-meta"><span>2天前</span><span>⚙ Git Sync</span></div>
+            </div>
+            <span class="ni-time">2天前</span>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="notif-sidebar">
+        <!-- Summary -->
+        <div class="summary-card">
+          <h4>通知概览</h4>
+          <div class="summary-nums">
+            <div class="sn-item"><div class="sni-num">12</div><div class="sni-label">未读</div></div>
+            <div class="sn-item"><div class="sni-num">48</div><div class="sni-label">本周</div></div>
+            <div class="sn-item"><div class="sni-num">3</div><div class="sni-label">@提及</div></div>
+            <div class="sn-item"><div class="sni-num">2</div><div class="sni-label">待审阅</div></div>
+          </div>
+        </div>
+
+        <!-- Preferences -->
+        <div style="margin-bottom:16px;">
+          <h4 style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px;">⚙ 通知偏好</h4>
+          <div class="notif-pref-row">
+            <div class="npr-icon">@</div>
+            <div class="npr-info">
+              <h5>被提及</h5>
+              <p>有人 @你</p>
+            </div>
+            <div class="channel-chips">
+              <span class="channel-chip on" onclick="this.classList.toggle('on')">站内</span>
+              <span class="channel-chip on" onclick="this.classList.toggle('on')">邮件</span>
+            </div>
+          </div>
+          <div class="notif-pref-row">
+            <div class="npr-icon">💬</div>
+            <div class="npr-info">
+              <h5>评论</h5>
+              <p>文档收到新评论</p>
+            </div>
+            <div class="channel-chips">
+              <span class="channel-chip on" onclick="this.classList.toggle('on')">站内</span>
+              <span class="channel-chip" onclick="this.classList.toggle('on')">邮件</span>
+            </div>
+          </div>
+          <div class="notif-pref-row">
+            <div class="npr-icon">⑂</div>
+            <div class="npr-info">
+              <h5>变更请求</h5>
+              <p>CR 审阅请求/状态更新</p>
+            </div>
+            <div class="channel-chips">
+              <span class="channel-chip on" onclick="this.classList.toggle('on')">站内</span>
+              <span class="channel-chip on" onclick="this.classList.toggle('on')">邮件</span>
+            </div>
+          </div>
+          <div class="notif-pref-row">
+            <div class="npr-icon">📡</div>
+            <div class="npr-info">
+              <h5>发布</h5>
+              <p>文档发布成功/失败</p>
+            </div>
+            <div class="channel-chips">
+              <span class="channel-chip on" onclick="this.classList.toggle('on')">站内</span>
+              <span class="channel-chip" onclick="this.classList.toggle('on')">邮件</span>
+            </div>
+          </div>
+          <div class="notif-pref-row">
+            <div class="npr-icon">✦</div>
+            <div class="npr-info">
+              <h5>AI 任务</h5>
+              <p>批量任务完成/失败</p>
+            </div>
+            <div class="channel-chips">
+              <span class="channel-chip on" onclick="this.classList.toggle('on')">站内</span>
+              <span class="channel-chip" onclick="this.classList.toggle('on')">邮件</span>
+            </div>
+          </div>
+          <div class="notif-pref-row">
+            <div class="npr-icon">◎</div>
+            <div class="npr-info">
+              <h5>成员变动</h5>
+              <p>邀请/加入/退出</p>
+            </div>
+            <div class="channel-chips">
+              <span class="channel-chip on" onclick="this.classList.toggle('on')">站内</span>
+              <span class="channel-chip" onclick="this.classList.toggle('on')">邮件</span>
+            </div>
+          </div>
+          <div class="notif-pref-row">
+            <div class="npr-icon">⚠</div>
+            <div class="npr-info">
+              <h5>系统告警</h5>
+              <p>配额预警/系统通知</p>
+            </div>
+            <div class="channel-chips">
+              <span class="channel-chip on" onclick="this.classList.toggle('on')">站内</span>
+              <span class="channel-chip on" onclick="this.classList.toggle('on')">邮件</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Webhook -->
+        <div style="background:var(--bg);border-radius:10px;padding:12px;">
+          <h5 style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px;">🔔 Webhook 通知</h5>
+          <p style="font-size:11px;color:var(--muted);margin-bottom:8px;">将通知事件推送到外部系统（Slack、钉钉等）</p>
+          <button class="btn btn-ghost btn-sm" style="width:100%;" onclick="window.location='developer.html'">⌗ 配置 Webhook</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="nav.js"></script>
+<script>
+function showTab(tab) {
+  document.querySelectorAll('.notif-tab').forEach(t => t.classList.remove('active'));
+  event.target.closest('.notif-tab').classList.add('active');
+}
+
+function openNotif(item) {
+  item.classList.remove('unread');
+  const dot = item.querySelector('.notif-unread-dot');
+  if (dot) dot.remove();
+  // Update badge
+  const badge = document.querySelector('.badge-danger');
+  if (badge) {
+    let count = parseInt(badge.textContent) - 1;
+    badge.textContent = Math.max(0, count);
+  }
+}
+
+function markAllRead() {
+  document.querySelectorAll('.notif-item.unread').forEach(item => {
+    item.classList.remove('unread');
+    const dot = item.querySelector('.notif-unread-dot');
+    if (dot) dot.remove();
+  });
+  document.querySelectorAll('.badge-danger').forEach(b => b.textContent = '0');
+  showToast('所有通知已标为已读', 'success');
+}
+</script>
+</body>
+</html>

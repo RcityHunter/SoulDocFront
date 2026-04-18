@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>语言版本中心 — SoulDoc</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.lang-layout { display:grid; grid-template-columns:280px 1fr 300px; flex:1; min-height:calc(100vh - 62px); }
+.lang-left { border-right:1px solid var(--line); background:var(--panel); overflow-y:auto; }
+.lang-center { background:var(--bg); overflow-y:auto; }
+.lang-right { border-left:1px solid var(--line); background:var(--panel); overflow-y:auto; }
+.lang-section { padding:16px; border-bottom:1px solid var(--line); }
+.lang-tool-btn { display:flex; align-items:center; gap:10px; width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:var(--panel); color:var(--text2); margin-bottom:8px; transition:var(--transition); }
+.lang-tool-btn:hover { border-color:var(--primary-border); background:var(--primary-light); color:var(--primary); }
+.doc-group-card { background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow); margin-bottom:16px; }
+.locale-card { border:1px solid var(--line); border-radius:12px; padding:12px; background:var(--panel); margin-bottom:10px; }
+</style>
+</head>
+<body>
+<div class="app-layout">
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">SD</div>
+    <div class="brand-text"><h1>SoulDoc</h1><p>AI 原生知识工作台</p></div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">主导航</div>
+    <a class="nav-item" href="index.html"><span class="nav-icon">🏠</span>首页</a>
+    <a class="nav-item" href="spaces.html"><span class="nav-icon">🗂️</span>知识空间</a>
+    <a class="nav-item" href="search.html"><span class="nav-icon">🔍</span>搜索</a>
+    <a class="nav-item" href="notifications.html"><span class="nav-icon">🔔</span>通知中心 <span class="nav-badge">5</span></a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">当前空间 · SoulDoc Demo</div>
+    <a class="nav-item" href="space.html"><span class="nav-icon">📌</span>空间概览</a>
+    <a class="nav-item" href="docs.html"><span class="nav-icon">📚</span>文档中心</a>
+    <a class="nav-item" href="editor.html"><span class="nav-icon">✏️</span>编辑器</a>
+    <a class="nav-item" href="change-request.html"><span class="nav-icon">🧾</span>变更请求</a>
+    <a class="nav-item" href="members.html"><span class="nav-icon">👥</span>成员权限</a>
+    <a class="nav-item" href="tags.html"><span class="nav-icon">🏷️</span>标签管理</a>
+    <a class="nav-item" href="files.html"><span class="nav-icon">📁</span>文件管理</a>
+    <a class="nav-item" href="seo.html"><span class="nav-icon">🌐</span>发布 & SEO</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">智能与语言</div>
+    <a class="nav-item active" href="language.html"><span class="nav-icon">🌍</span>语言版本</a>
+    <a class="nav-item" href="ai-tasks.html"><span class="nav-icon">✨</span>AI 任务中心</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">平台</div>
+    <a class="nav-item" href="developer.html"><span class="nav-icon">🛠️</span>开发者平台</a>
+    <a class="nav-item" href="settings.html"><span class="nav-icon">⚙️</span>系统设置</a>
+  </div>
+  <div class="sidebar-bottom">
+    <a class="nav-item" href="profile.html"><div class="avatar avatar-sm" style="background:var(--gradient)">A</div><span class="identity-inline">Admin <span class="identity-badge human">人类</span></span></a>
+  </div>
+</aside>
+
+<div class="main-area">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:20px">🌍</span>
+      <h1 style="font-size:17px;font-weight:600">语言版本中心</h1>
+      <span class="badge badge-primary">同一文档组</span>
+    </div>
+    <div class="topbar-right">
+      <button class="btn btn-sm" onclick="location.href='public-doc.html'">🔗 公开文档视图</button>
+      <button class="btn btn-sm btn-primary" onclick="openModal('new-locale-modal')">＋ 新增语言版本</button>
+    </div>
+  </div>
+
+  <div class="lang-layout">
+    <div class="lang-left">
+      <div class="lang-section">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">语言操作</div>
+        <button class="lang-tool-btn" onclick="openModal('new-locale-modal')"><span>＋</span><div><div style="font-weight:600">新增语言版本</div><div style="font-size:12px;color:var(--muted)">为当前文档组创建新的 locale</div></div></button>
+        <button class="lang-tool-btn" onclick="location.href='ai-tasks.html'"><span>⚡</span><div><div style="font-weight:600">批量翻译任务</div><div style="font-size:12px;color:var(--muted)">异步翻译、审校、重跑</div></div></button>
+        <button class="lang-tool-btn" onclick="showToast('源语言变更已同步到待复审队列','success')"><span>🔁</span><div><div style="font-weight:600">同步源语言改动</div><div style="font-size:12px;color:var(--muted)">将变更标记到其它语言版本</div></div></button>
+        <button class="lang-tool-btn" onclick="showToast('已导出语言清单','success')"><span>📦</span><div><div style="font-weight:600">导出 locale 清单</div><div style="font-size:12px;color:var(--muted)">便于翻译与发布协作</div></div></button>
+      </div>
+
+      <div class="lang-section">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">文档组</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div class="surface-note" style="cursor:pointer;border-color:var(--primary-border);background:var(--primary-light)">
+            <div style="font-size:13px;font-weight:600;color:var(--primary)">产品需求文档 PRD v2.0</div>
+            <div style="font-size:11.5px;color:var(--muted)">4 个语言版本 · 1 个待复审</div>
+          </div>
+          <div class="surface-note" style="cursor:pointer">
+            <div style="font-size:13px;font-weight:600">API 接口设计文档</div>
+            <div style="font-size:11.5px;color:var(--muted)">3 个语言版本 · 全部已发布</div>
+          </div>
+          <div class="surface-note" style="cursor:pointer">
+            <div style="font-size:13px;font-weight:600">快速开始 Quickstart</div>
+            <div style="font-size:11.5px;color:var(--muted)">2 个语言版本 · 日文待创建</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="lang-center">
+      <div style="padding:24px 28px">
+        <div class="doc-group-card">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">
+            <div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+                <span class="badge badge-warning">草稿组</span>
+                <span class="badge badge-info">doc_group: prd-core</span>
+                <span class="badge badge-success">公共空间</span>
+              </div>
+              <h2 style="font-size:22px;font-weight:700;margin-bottom:8px">产品需求文档 PRD v2.0</h2>
+              <p style="color:var(--muted);font-size:14px;max-width:760px">SoulDoc 的多语言采用行业常见的“同一文档组 + 每语言独立版本”模式：每个 locale 各自保存、各自发布，用同一个文档组 ID 关联，并支持默认语言回退与并行校对。</p>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <span class="locale-chip active">zh-CN 主语言</span>
+              <span class="locale-chip">en-US 已发布</span>
+              <span class="locale-chip">ja-JP 待复审</span>
+              <span class="locale-chip">es-ES 未创建</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="surface-note" style="margin-bottom:16px">
+          <div style="font-size:13px;font-weight:600;margin-bottom:10px">行业通用做法</div>
+          <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;font-size:13px;color:var(--text3)">
+            <div>1. 每种语言是一份独立文档，可独立保存、独立发布。</div>
+            <div>2. 各语言通过统一的 `doc_group_id` 关联，而不是把所有文本塞进一份长文档。</div>
+            <div>3. 默认语言作为源版本，其它语言记录翻译状态、更新时间、是否落后于源文。</div>
+            <div>4. 阅读端提供语言切换；编辑端提供并排对照与缺失回退。</div>
+          </div>
+        </div>
+
+        <div class="compare-grid" style="margin-bottom:16px">
+          <div class="doc-group-card" style="margin-bottom:0">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+              <div class="identity-inline" style="font-weight:600">简体中文 <span class="locale-chip active">zh-CN</span></div>
+              <span class="badge badge-warning">源版本</span>
+            </div>
+            <h3 style="font-size:18px;font-weight:700;margin-bottom:8px">产品需求文档 PRD v2.0</h3>
+            <p style="font-size:13.5px;color:var(--text2);line-height:1.8">SoulDoc 是一套面向 AI 原生内容生产、知识组织、团队协作与多角色共创的文档/知识系统。空间支持公共与私有两类可见性，同一篇文档通过语言版本机制并行维护多语言内容。</p>
+            <div style="margin-top:12px;font-size:12px;color:var(--muted)">更新者：<span class="identity-inline">张三 <span class="identity-badge human">人类</span></span> · 8分钟前</div>
+          </div>
+          <div class="doc-group-card" style="margin-bottom:0">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+              <div class="identity-inline" style="font-weight:600">English <span class="locale-chip">en-US</span></div>
+              <span class="badge badge-success">已发布</span>
+            </div>
+            <h3 style="font-size:18px;font-weight:700;margin-bottom:8px">Product Requirements Document PRD v2.0</h3>
+            <p style="font-size:13.5px;color:var(--text2);line-height:1.8">SoulDoc is an AI-native documentation system for knowledge creation, organization, collaboration, and multilingual delivery. Each locale is versioned independently while remaining linked inside the same document group.</p>
+            <div style="margin-top:12px;font-size:12px;color:var(--muted)">更新者：<span class="identity-inline">Aurora <span class="identity-badge ai">AI</span></span> · 昨天 17:20</div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="gap:16px;margin-bottom:16px">
+          <div class="doc-group-card" style="margin-bottom:0">
+            <div class="card-header" style="margin-bottom:12px;padding:0"><h3>翻译工作流</h3></div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div class="surface-note"><strong>1. Detect</strong><div style="font-size:12px;color:var(--muted)">源语言变更后，自动识别受影响 locale 与变更块。</div></div>
+              <div class="surface-note"><strong>2. Draft</strong><div style="font-size:12px;color:var(--muted)">由 AI 先生成翻译草稿，但不直接覆盖已发布版本。</div></div>
+              <div class="surface-note"><strong>3. Review</strong><div style="font-size:12px;color:var(--muted)">进入待复审队列，由人类或具备权限的 AI 用户完成校对与发布。</div></div>
+            </div>
+          </div>
+          <div class="doc-group-card" style="margin-bottom:0">
+            <div class="card-header" style="margin-bottom:12px;padding:0"><h3>翻译记忆与术语库</h3></div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div class="surface-note">相同段落优先命中翻译记忆缓存，避免同一篇文档反复重译。</div>
+              <div class="surface-note">产品名、角色名、权限名与品牌措辞进入术语库，保证不同语言版本的一致性。</div>
+              <div class="surface-note">跨语言搜索会共享语义索引，但阅读端仍以当前 locale 或回退语言输出正文。</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="doc-group-card">
+          <div class="card-header" style="margin-bottom:12px;padding:0">
+            <h3>语言版本时间线</h3>
+            <button class="btn btn-sm" onclick="location.href='versions.html'">查看完整版本历史</button>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div class="surface-note" style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+              <div>
+                <div style="font-size:13.5px;font-weight:600">zh-CN 源文更新，触发 en-US / ja-JP 待复审</div>
+                <div style="font-size:12px;color:var(--muted);margin-top:3px">由 <span class="identity-inline">张三 <span class="identity-badge human">人类</span></span> 编辑主语言后自动产生</div>
+              </div>
+              <span class="badge badge-warning">刚刚</span>
+            </div>
+            <div class="surface-note" style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+              <div>
+                <div style="font-size:13.5px;font-weight:600">en-US 重新发布成功</div>
+                <div style="font-size:12px;color:var(--muted);margin-top:3px">由 <span class="identity-inline">Aurora <span class="identity-badge ai">AI</span></span> 完成翻译草稿，<span class="identity-inline">Admin <span class="identity-badge human">人类</span></span> 审核发布</div>
+              </div>
+              <span class="badge badge-success">昨天</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="lang-right">
+      <div class="lang-section">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">版本状态</div>
+        <div class="locale-card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><strong>zh-CN</strong><span class="badge badge-warning">源版本</span></div>
+          <div style="font-size:12px;color:var(--muted)">最新编辑 8 分钟前 · 负责用户：<span class="identity-inline">张三 <span class="identity-badge human">人类</span></span></div>
+        </div>
+        <div class="locale-card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><strong>en-US</strong><span class="badge badge-success">已发布</span></div>
+          <div style="font-size:12px;color:var(--muted)">已与源文同步 · 对外可见</div>
+        </div>
+        <div class="locale-card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><strong>ja-JP</strong><span class="badge badge-warning">待复审</span></div>
+          <div style="font-size:12px;color:var(--muted)">落后源文 1 次提交 · 等待人工校对</div>
+        </div>
+        <div class="locale-card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><strong>es-ES</strong><span class="badge badge-gray">未创建</span></div>
+          <div style="font-size:12px;color:var(--muted)">可按需生成首版翻译</div>
+        </div>
+      </div>
+
+      <div class="lang-section">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">空间访问规则</div>
+        <div class="surface-note" style="font-size:13px;color:var(--text3);margin-bottom:10px">
+          <div style="font-weight:600;margin-bottom:8px">🌐 公共空间</div>
+          <div>所有人都能查看公开发布的语言版本，阅读端默认显示用户当前语言，缺失时回退到默认语言。</div>
+        </div>
+        <div class="surface-note" style="font-size:13px;color:var(--text3)">
+          <div style="font-weight:600;margin-bottom:8px">🔒 私有空间</div>
+          <div>只有空间成员能查看任意语言版本；未加入成员无法通过公开链接访问。</div>
+        </div>
+      </div>
+
+      <div class="lang-section">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">发布策略</div>
+        <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;color:var(--text3)">
+          <div class="surface-note">默认语言：<strong>zh-CN</strong></div>
+          <div class="surface-note">URL：<strong>/docs/prd</strong> + locale 前缀</div>
+          <div class="surface-note">缺失回退：<strong>en-US</strong></div>
+          <button class="btn btn-sm btn-primary" style="justify-content:center" onclick="location.href='public-doc.html'">预览公开阅读页</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="modal-overlay" id="new-locale-modal">
+  <div class="modal">
+    <div class="modal-header"><h3>新增语言版本</h3><button class="btn-ghost btn-icon" onclick="closeModal('new-locale-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">目标语言</label><select class="input select"><option>English (en-US)</option><option>日本語 (ja-JP)</option><option>Español (es-ES)</option><option>한국어 (ko-KR)</option></select></div>
+      <div class="form-group"><label class="form-label">创建方式</label><select class="input select"><option>从源语言自动生成初稿</option><option>创建空白版本</option><option>复制现有英语版本</option></select></div>
+      <div class="form-group" style="margin-bottom:0"><label class="form-label" style="display:flex;align-items:center;gap:8px"><div class="toggle on"></div>生成后加入 AI 任务队列</label></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('new-locale-modal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('new-locale-modal');showToast('语言版本已创建','success')">创建版本</button>
+    </div>
+  </div>
+</div>
+
+<script src="nav.js"></script>
+</body>
+</html>

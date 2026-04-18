@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知识空间 — SoulDoc</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app-layout">
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">SD</div>
+    <div class="brand-text"><h1>SoulDoc</h1><p>AI 原生知识工作台</p></div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">主导航</div>
+    <a class="nav-item" href="index.html"><span class="nav-icon">🏠</span>首页</a>
+    <a class="nav-item active" href="spaces.html"><span class="nav-icon">🗂️</span>知识空间</a>
+    <a class="nav-item" href="search.html"><span class="nav-icon">🔍</span>搜索</a>
+    <a class="nav-item" href="notifications.html"><span class="nav-icon">🔔</span>通知中心 <span class="nav-badge">5</span></a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">当前空间 · SoulDoc Demo</div>
+    <a class="nav-item" href="space.html"><span class="nav-icon">📌</span>空间概览</a>
+    <a class="nav-item" href="docs.html"><span class="nav-icon">📚</span>文档中心</a>
+    <a class="nav-item" href="editor.html"><span class="nav-icon">✏️</span>编辑器</a>
+    <a class="nav-item" href="change-request.html"><span class="nav-icon">🧾</span>变更请求</a>
+    <a class="nav-item" href="members.html"><span class="nav-icon">👥</span>成员权限</a>
+    <a class="nav-item" href="tags.html"><span class="nav-icon">🏷️</span>标签管理</a>
+    <a class="nav-item" href="files.html"><span class="nav-icon">📁</span>文件管理</a>
+    <a class="nav-item" href="seo.html"><span class="nav-icon">🌐</span>发布 & SEO</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">智能与语言</div>
+    <a class="nav-item" href="language.html"><span class="nav-icon">🌍</span>语言版本</a>
+    <a class="nav-item" href="ai-tasks.html"><span class="nav-icon">✨</span>AI 任务中心</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">平台</div>
+    <a class="nav-item" href="developer.html"><span class="nav-icon">🛠️</span>开发者平台</a>
+    <a class="nav-item" href="settings.html"><span class="nav-icon">⚙️</span>系统设置</a>
+  </div>
+  <div class="sidebar-bottom">
+    <a class="nav-item" href="profile.html"><div class="avatar avatar-sm" style="background:var(--gradient)">A</div><span class="identity-inline">Admin <span class="identity-badge human">人类</span></span></a>
+  </div>
+</aside>
+
+<div class="main-area">
+  <div class="topbar">
+    <div class="topbar-search"><span class="topbar-search-icon">🔍</span><input type="text" placeholder="搜索空间名称..."></div>
+    <div class="topbar-right">
+      <select class="btn" style="border:1px solid var(--line)">
+        <option>全部可见性</option><option>🔒 私有</option><option>🌐 公共</option>
+      </select>
+      <button class="btn btn-primary" onclick="openModal('new-space-modal')">＋ 创建空间</button>
+    </div>
+  </div>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div class="page-header-left">
+        <h1>🗂️ 知识空间</h1>
+        <p>管理您的个人空间、组织空间与内容项目，明确个人沉淀和组织协作的边界</p>
+      </div>
+    </div>
+
+    <!-- My Spaces -->
+    <div style="margin-bottom:28px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <h3 style="font-size:15px;font-weight:600">我创建的空间 (3)</h3>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+        <span class="scope-chip org">组织所有</span>
+        <span class="scope-chip personal">个人所有</span>
+      </div>
+      <div class="grid-3">
+        <div class="space-card" onclick="location.href='space.html'">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="font-size:28px">📘</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+              <span class="scope-chip org">组织</span>
+              <span class="badge badge-success">公共</span>
+            </div>
+          </div>
+          <div>
+            <h3>SoulDoc Demo</h3>
+            <p>AI 原生知识生产系统的演示空间，包含全套功能示例</p>
+          </div>
+          <div class="space-card-meta">
+            <span>📄 248 文档</span>
+            <span>👥 12 成员</span>
+            <span>🏷️ 18 标签</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)">
+            <span>✏️ 8分钟前更新</span>
+            <span class="ai-badge" style="font-size:11px;padding:2px 8px">AI 已启用</span>
+          </div>
+          <div class="space-card-actions">
+            <button class="btn btn-sm" onclick="event.stopPropagation();location.href='docs.html'">打开</button>
+            <button class="btn btn-sm" onclick="event.stopPropagation();location.href='space.html'">概览</button>
+          </div>
+        </div>
+
+        <div class="space-card" onclick="location.href='space.html'">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="font-size:28px">🔬</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+              <span class="scope-chip org">组织</span>
+              <span class="badge badge-gray">私有</span>
+            </div>
+          </div>
+          <div>
+            <h3>技术研发文档</h3>
+            <p>研发团队私有技术文档、架构设计、接口规范</p>
+          </div>
+          <div class="space-card-meta">
+            <span>📄 86 文档</span>
+            <span>👥 8 成员</span>
+            <span>🏷️ 24 标签</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)">
+            <span>✏️ 1小时前更新</span>
+            <span class="ai-badge" style="font-size:11px;padding:2px 8px">AI 已启用</span>
+          </div>
+          <div class="space-card-actions">
+            <button class="btn btn-sm" onclick="event.stopPropagation();location.href='docs.html'">打开</button>
+            <button class="btn btn-sm" onclick="event.stopPropagation();location.href='space.html'">概览</button>
+          </div>
+        </div>
+
+        <div class="space-card" onclick="location.href='space.html'">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="font-size:28px">🤝</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+              <span class="scope-chip personal">个人</span>
+              <span class="badge badge-success">公共</span>
+            </div>
+          </div>
+          <div>
+            <h3>个人研究札记</h3>
+            <p>个人沉淀的产品构想、竞品分析与未进入组织协作的研究文档</p>
+          </div>
+          <div class="space-card-meta">
+            <span>📄 32 文档</span>
+            <span>👥 1 成员</span>
+            <span>🏷️ 9 标签</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)">
+            <span>✏️ 3小时前更新</span>
+          </div>
+          <div class="space-card-actions">
+            <button class="btn btn-sm" onclick="event.stopPropagation();location.href='docs.html'">打开</button>
+            <button class="btn btn-sm" onclick="event.stopPropagation()">概览</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Joined Spaces -->
+    <div style="margin-bottom:28px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <h3 style="font-size:15px;font-weight:600">加入的组织空间 (4)</h3>
+      </div>
+      <div class="grid-4">
+        <div class="space-card" onclick="location.href='space.html'" style="gap:10px">
+          <div style="font-size:24px">📢</div>
+          <h3 style="font-size:15px">品牌内容中台</h3>
+          <p style="font-size:12px">营销内容生产与管理</p>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted)"><span>64文档 · Editor</span><span class="scope-chip org">组织</span></div>
+        </div>
+        <div class="space-card" onclick="location.href='space.html'" style="gap:10px">
+          <div style="font-size:24px">🎓</div>
+          <h3 style="font-size:15px">HR 知识库</h3>
+          <p style="font-size:12px">员工手册、规章制度</p>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted)"><span>28文档 · Viewer</span><span class="scope-chip org">组织</span></div>
+        </div>
+        <div class="space-card" onclick="location.href='space.html'" style="gap:10px">
+          <div style="font-size:24px">💡</div>
+          <h3 style="font-size:15px">产品创意工作室</h3>
+          <p style="font-size:12px">产品灵感、竞品分析</p>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted)"><span>41文档 · Editor</span><span class="scope-chip org">组织</span></div>
+        </div>
+        <div class="space-card" onclick="location.href='space.html'" style="gap:10px">
+          <div style="font-size:24px">🌏</div>
+          <h3 style="font-size:15px">开发者文档中心</h3>
+          <p style="font-size:12px">对外发布的开发者文档</p>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted)"><span>93文档 · Member</span><span class="scope-chip org">组织</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create Space CTA -->
+    <div style="background:var(--panel);border:2px dashed var(--line);border-radius:var(--radius);padding:32px;text-align:center">
+      <div style="font-size:36px;margin-bottom:12px">🚀</div>
+      <h3 style="font-size:16px;font-weight:600;margin-bottom:6px">创建新的知识空间</h3>
+      <p style="color:var(--muted);font-size:14px;margin-bottom:16px">每个空间都是独立的知识边界，但需要先明确归属载体和内容集合：个人工作区还是组织</p>
+      <button class="btn btn-primary" onclick="openModal('new-space-modal')">＋ 创建知识空间</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- New Space Modal -->
+<div class="modal-overlay" id="new-space-modal">
+  <div class="modal">
+    <div class="modal-header"><h3>创建知识空间</h3><button class="btn-ghost btn-icon" onclick="closeModal('new-space-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">空间名称 <span class="required">*</span></label><input class="input" placeholder="如：产品设计文档"></div>
+      <div class="form-group"><label class="form-label">URL Slug <span class="required">*</span></label>
+        <div class="input-group"><span style="padding:10px 12px;background:var(--panel2);border:1px solid var(--line);border-right:none;border-radius:8px 0 0 8px;font-size:13px;color:var(--muted)">souldoc.io/</span><input class="input" style="border-radius:0 8px 8px 0" placeholder="product-design"></div>
+      </div>
+      <div class="form-group"><label class="form-label">简介</label><textarea class="input textarea" placeholder="描述这个空间的用途和目标受众" style="height:80px"></textarea></div>
+      <div class="form-group"><label class="form-label">归属载体</label>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
+          <div style="border:2px solid var(--primary);border-radius:10px;padding:12px;text-align:center;cursor:pointer;background:var(--primary-light)">
+            <div style="font-size:20px;margin-bottom:4px">🏢</div><div style="font-size:12px;font-weight:500;color:var(--primary)">SoulDoc 团队</div><div style="font-size:11px;color:var(--muted);margin-top:2px">组织所有</div>
+          </div>
+          <div style="border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center;cursor:pointer">
+            <div style="font-size:20px;margin-bottom:4px">👤</div><div style="font-size:12px;color:var(--muted)">个人工作区</div><div style="font-size:11px;color:var(--muted);margin-top:2px">个人所有</div>
+          </div>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">归属集合 Collection（可选）</label><select class="input select"><option>不加入集合（顶层 Space）</option><option>产品文档</option><option>帮助中心</option><option>开放平台</option></select></div>
+      <div class="form-group"><label class="form-label">可见性</label>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
+          <div style="border:2px solid var(--primary);border-radius:10px;padding:12px;text-align:center;cursor:pointer;background:var(--primary-light)">
+            <div style="font-size:20px;margin-bottom:4px">🔒</div><div style="font-size:12px;font-weight:500;color:var(--primary)">私有</div><div style="font-size:11px;color:var(--muted);margin-top:2px">仅成员</div>
+          </div>
+          <div style="border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center;cursor:pointer">
+            <div style="font-size:20px;margin-bottom:4px">🌐</div><div style="font-size:12px;color:var(--muted)">公共</div><div style="font-size:11px;color:var(--muted);margin-top:2px">所有人</div>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">协作模式</label>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
+          <div style="border:2px solid var(--primary);border-radius:10px;padding:12px;text-align:center;cursor:pointer;background:var(--primary-light)">
+            <div style="font-size:20px;margin-bottom:4px">👤</div><div style="font-size:12px;font-weight:500;color:var(--primary)">Personal Space</div><div style="font-size:11px;color:var(--muted);margin-top:2px">个人主导</div>
+          </div>
+          <div style="border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center;cursor:pointer">
+            <div style="font-size:20px;margin-bottom:4px">👥</div><div style="font-size:12px;color:var(--muted)">Team Space</div><div style="font-size:11px;color:var(--muted);margin-top:2px">团队协作</div>
+          </div>
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label" style="display:flex;align-items:center;gap:8px;cursor:pointer">
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          启用 AI 能力（推荐）
+        </label>
+        <div class="form-hint">允许 AI 对该空间内的文档进行分析、摘要和向量检索</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('new-space-modal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('new-space-modal');location.href='space.html'">创建空间</button>
+    </div>
+  </div>
+</div>
+
+<script src="nav.js"></script>
+</body>
+</html>

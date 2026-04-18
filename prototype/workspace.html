@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>发布站点 — SoulDoc</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.workspace-legacy { display:none; }
+.site-stage { display:grid; grid-template-columns:1.2fr .8fr; gap:20px; margin-bottom:20px; }
+.flow-map { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; }
+.flow-card { background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:14px; }
+.flow-card h4 { font-size:13px; font-weight:700; margin-bottom:6px; }
+.flow-card p { font-size:12px; color:var(--muted); }
+.stack-list { display:flex; flex-direction:column; gap:10px; }
+.stack-item { border:1px solid var(--line); border-radius:12px; background:var(--panel); padding:14px; }
+.stack-item h4 { font-size:14px; font-weight:700; margin-bottom:4px; }
+.stack-item p { font-size:12px; color:var(--muted); }
+.compare-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:20px; margin-bottom:20px; }
+.compare-card { background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:18px; }
+@media (max-width: 1200px) {
+  .compare-grid, .flow-map { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+<div class="app-layout">
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">SD</div>
+    <div class="brand-text"><h1>SoulDoc</h1><p>AI 原生知识工作台</p></div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">主导航</div>
+    <a class="nav-item" href="index.html"><span class="nav-icon">🏠</span>首页</a>
+    <a class="nav-item" href="spaces.html"><span class="nav-icon">🗂️</span>知识空间</a>
+    <a class="nav-item" href="search.html"><span class="nav-icon">🔍</span>搜索</a>
+    <a class="nav-item" href="notifications.html"><span class="nav-icon">🔔</span>通知中心 <span class="nav-badge">5</span></a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">当前空间 · SoulDoc Demo</div>
+    <a class="nav-item" href="space.html"><span class="nav-icon">📌</span>空间概览</a>
+    <a class="nav-item" href="docs.html"><span class="nav-icon">📚</span>文档中心</a>
+    <a class="nav-item" href="editor.html"><span class="nav-icon">✏️</span>编辑器</a>
+    <a class="nav-item" href="change-request.html"><span class="nav-icon">🧾</span>变更请求</a>
+    <a class="nav-item" href="members.html"><span class="nav-icon">👥</span>成员权限</a>
+    <a class="nav-item" href="tags.html"><span class="nav-icon">🏷️</span>标签管理</a>
+    <a class="nav-item" href="files.html"><span class="nav-icon">📁</span>文件管理</a>
+    <a class="nav-item" href="seo.html"><span class="nav-icon">🌐</span>发布 & SEO</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">智能与语言</div>
+    <a class="nav-item" href="language.html"><span class="nav-icon">🌍</span>语言版本</a>
+    <a class="nav-item" href="ai-tasks.html"><span class="nav-icon">✨</span>AI 任务中心</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">平台</div>
+    <a class="nav-item" href="developer.html"><span class="nav-icon">🛠️</span>开发者平台</a>
+    <a class="nav-item" href="settings.html"><span class="nav-icon">⚙️</span>系统设置</a>
+  </div>
+  <div class="sidebar-bottom">
+    <a class="nav-item" href="profile.html"><div class="avatar avatar-sm" style="background:var(--gradient)">A</div><span class="identity-inline">Admin <span class="identity-badge human">人类</span></span></a>
+  </div>
+</aside>
+
+<div class="main-area">
+  <div class="topbar">
+    <div class="breadcrumb">
+      <a href="index.html">首页</a><span class="breadcrumb-sep">/</span>
+      <strong style="color:var(--text)">发布站点</strong>
+    </div>
+    <div class="topbar-right">
+      <a href="public-doc.html" class="btn btn-sm">公开阅读页</a>
+      <a href="git-sync.html" class="btn btn-sm btn-primary">GitHub 同步</a>
+    </div>
+  </div>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1>🏛️ 发布站点</h1>
+        <p>用于配置对外发布的站点、站点分区和已链接的公共 Space。这里处理域名、导航、SEO 和公开访问，不处理文档生产本身。</p>
+      </div>
+    </div>
+
+    <div class="grid-4" style="margin-bottom:20px">
+      <div class="metric-card"><div class="metric-icon" style="background:#eef2ff">🌐</div><div class="metric-value">3</div><div class="metric-label">发布站点</div></div>
+      <div class="metric-card"><div class="metric-icon" style="background:#d1fae5">🧭</div><div class="metric-value">5</div><div class="metric-label">站点分区</div></div>
+      <div class="metric-card"><div class="metric-icon" style="background:#ede9fe">🔗</div><div class="metric-value">7</div><div class="metric-label">已链接 Space</div></div>
+      <div class="metric-card"><div class="metric-icon" style="background:#fef3c7">📄</div><div class="metric-value">126</div><div class="metric-label">已发布文档</div></div>
+    </div>
+
+    <div class="compare-grid">
+      <div class="compare-card">
+        <div class="card-header"><h3>这页做什么</h3></div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="surface-note"><strong>管理发布站点</strong><div style="font-size:12px;color:var(--muted)">配置域名、品牌、SEO、公开入口和访问策略。</div></div>
+          <div class="surface-note"><strong>管理站点分区</strong><div style="font-size:12px;color:var(--muted)">把站点导航拆成产品文档、帮助中心、开放平台等分区。</div></div>
+          <div class="surface-note"><strong>链接公共 Space</strong><div style="font-size:12px;color:var(--muted)">选择哪些公共 Space 对外可见，以及挂到哪个站点分区下。</div></div>
+          <div class="surface-note"><strong>联动发布链</strong><div style="font-size:12px;color:var(--muted)">和 SEO、语言版本、公开阅读页、GitHub 同步共用同一条发布事实链。</div></div>
+        </div>
+      </div>
+      <div class="compare-card">
+        <div class="card-header"><h3>对象边界</h3></div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="surface-note"><strong>Collection</strong><div style="font-size:12px;color:var(--muted)">内容集合，属于个人工作区或组织，用来组织多个 Space。</div></div>
+          <div class="surface-note"><strong>Space</strong><div style="font-size:12px;color:var(--muted)">内容生产和协作边界，承载文档、版本、审批、AI 和语言版本。</div></div>
+          <div class="surface-note"><strong>Site</strong><div style="font-size:12px;color:var(--muted)">发布站点，只处理对外呈现，不直接拥有文档内容。</div></div>
+          <div class="surface-note"><strong>Section</strong><div style="font-size:12px;color:var(--muted)">站点分区，负责组织公开导航；一个分区下可以挂多个已链接 Space。</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-header"><h3>当前发布结构</h3></div>
+      <table>
+        <thead><tr><th>对象</th><th>当前配置</th><th>作用</th></tr></thead>
+        <tbody>
+          <tr><td>发布站点</td><td>Brand Knowledge Hub / docs.souldoc.io</td><td>统一对外域名、品牌和 SEO 配置</td></tr>
+          <tr><td>站点分区</td><td>产品文档 / 内容运营 / 开放平台</td><td>组织公开导航与阅读入口</td></tr>
+          <tr><td>已链接 Space</td><td>SoulDoc Demo / 客户交付文档 / API Docs</td><td>对外暴露已发布内容</td></tr>
+          <tr><td>未链接 Space</td><td>技术研发文档 / 内部安全规范</td><td>留在内部协作侧，不进入公开站点</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="site-stage">
+      <div class="card">
+        <div class="card-header"><h3>典型管理动作</h3></div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="surface-note">新建一个发布站点，例如 `help.souldoc.io`，并指定默认语言、域名和 SEO 规则。</div>
+          <div class="surface-note">在站点下建立分区，例如“帮助中心”“开放平台”“更新日志”。</div>
+          <div class="surface-note">把公共 Space 链接到指定分区；私有 Space 不允许直接进入公开站点。</div>
+          <div class="surface-note">发布前统一检查语言完整度、SEO、权限范围和 GitHub 同步状态。</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>下一步</h3></div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <a class="list-item" href="seo.html"><div class="list-item-main"><div class="list-item-title">发布 & SEO</div><div class="list-item-sub">继续处理域名、SEO、公开访问和发布目标</div></div></a>
+          <a class="list-item" href="public-doc.html"><div class="list-item-main"><div class="list-item-title">公开阅读页</div><div class="list-item-sub">查看外部用户最终看到的结果态</div></div></a>
+          <a class="list-item" href="git-sync.html"><div class="list-item-main"><div class="list-item-title">GitHub 同步</div><div class="list-item-sub">把仓库、预览分支和站点发布接到一起</div></div></a>
+          <a class="list-item" href="spaces.html"><div class="list-item-main"><div class="list-item-title">回到知识空间</div><div class="list-item-sub">管理 Collection / Space 本身的内容与协作边界</div></div></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="workspace-legacy">
+    <div class="page-header">
+      <div>
+        <h1>🏛️ 发布站点</h1>
+        <p>把 `Organization / 发布站点 / 空间分组 / Space / Document` 这条发布骨架补回到 SoulDoc V5，让组织协作、公开阅读页、发布、Git Sync 与开发者能力形成闭环。</p>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:20px">
+      <div class="metric-card"><div class="metric-icon" style="background:#f1f5f9">🏢</div><div class="metric-value">1</div><div class="metric-label">组织</div></div>
+      <div class="metric-card"><div class="metric-icon" style="background:#eef2ff">🏠</div><div class="metric-value">3</div><div class="metric-label">发布站点</div></div>
+      <div class="metric-card"><div class="metric-icon" style="background:#ecfeff">🧭</div><div class="metric-value">8</div><div class="metric-label">空间分组</div></div>
+      <div class="metric-card"><div class="metric-icon" style="background:#ede9fe">🗂️</div><div class="metric-value">12</div><div class="metric-label">Space</div></div>
+      <div class="metric-card"><div class="metric-icon" style="background:#d1fae5">📄</div><div class="metric-value">248</div><div class="metric-label">文档对象</div></div>
+    </div>
+
+    <div class="site-stage">
+      <div class="card">
+        <div class="card-header"><h3>结构映射</h3></div>
+        <table>
+          <thead>
+            <tr><th>平台层</th><th>在 SoulDoc 中的角色</th><th>结果态</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Organization</td><td>成员、发布站点、空间分组与组织空间的协作载体</td><td>组织目录 / 组织发布站点 / 组织空间</td></tr>
+            <tr><td>发布站点</td><td>承载域名、品牌、导航与公开阅读，不直接拥有内容</td><td>公开阅读页 / 对外入口</td></tr>
+            <tr><td>空间分组</td><td>组织多个 Space 的发布导航分组</td><td>产品文档 / 内容运营 / 开放平台</td></tr>
+            <tr><td>Space</td><td>业务边界、权限边界、成员与 AI 用户协作边界</td><td>公共 / 私有</td></tr>
+            <tr><td>Document</td><td>知识单元，承载版本、变更请求、语言版本与发布</td><td>阅读 / 编辑 / 发布</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>当前发布站点配置</h3></div>
+        <div class="stack-list">
+          <div class="stack-item"><h4>归属组织</h4><p>SoulDoc 团队 · 统一承载成员目录、组织空间、域名与发布策略</p></div>
+          <div class="stack-item"><h4>Brand Knowledge Hub</h4><p>docs.souldoc.io · 已启用公开阅读页与语言版本切换</p></div>
+          <div class="stack-item"><h4>空间分组</h4><p>产品文档 / 内容运营 / 开放平台</p></div>
+          <div class="stack-item"><h4>访问策略</h4><p>公共空间对外可见，私有空间仅成员可见；发布站点级规则由发布链统一控制。</p></div>
+          <div class="stack-item"><h4>AI 能力</h4><p>公开阅读页只提供受限问答与推荐问题，不直接暴露写入操作。</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="gap:20px;margin-bottom:20px">
+      <div class="card">
+        <div class="card-header"><h3>Account 根节点</h3></div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="surface-note">在更完整的架构里，<strong>Account</strong> 位于 Organization / 发布站点 / 空间分组 / Space 之上，负责身份、订阅、偏好、配额与跨空间审计。</div>
+          <div class="surface-note">SoulDoc V5 的页面不单独拉出一个账户后台，但在个人中心、系统设置和开发者平台里已经显性承接这层能力。</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>个人工作区 / 组织</h3></div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="surface-note"><strong>个人工作区</strong> 承载个人草稿、偏好与私有沉淀；<strong>组织</strong> 承载成员目录、发布站点、空间分组与组织空间。</div>
+          <div class="surface-note">空间类型解决协作模式：<strong>Personal Space</strong> 偏个人知识沉淀，<strong>Team Space</strong> 偏团队治理与审批链；公共 / 私有只解决可见性。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-header"><h3>层级关系</h3></div>
+      <div class="flow-map">
+        <div class="flow-card"><h4>Organization</h4><p>SoulDoc 团队<br>成员 / 发布站点 / 组织空间</p></div>
+        <div class="flow-card"><h4>发布站点</h4><p>Brand Knowledge Hub<br>docs.souldoc.io</p></div>
+        <div class="flow-card"><h4>空间分组</h4><p>产品文档<br>内容运营<br>开放平台</p></div>
+        <div class="flow-card"><h4>Space</h4><p>SoulDoc Demo<br>技术研发<br>客户交付</p></div>
+        <div class="flow-card"><h4>Document</h4><p>PRD / API / FAQ / SEO 手册<br>再往下进入版本、CR、发布。</p></div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="gap:20px">
+      <div class="card">
+        <div class="card-header"><h3>这页解决什么问题</h3></div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="surface-note">组织不等于发布站点。组织是协作与归属载体，发布站点是品牌化与公开访问的结果层。</div>
+          <div class="surface-note">发布站点不等于空间。发布站点只负责对外展示已发布的空间和文档，空间才是协作与权限的业务层。</div>
+          <div class="surface-note">空间分组解决大型知识站点导航问题，让多个 Space 能被统一编排，而不是平铺在一个空间列表里。</div>
+          <div class="surface-note">发布、公开阅读页、Git Sync、开放平台都应从这条结构关系里长出来，而不是孤立页面。</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>下一步链路</h3></div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <a class="list-item" href="organization.html"><div class="list-item-main"><div class="list-item-title">进入组织主页</div><div class="list-item-sub">查看组织成员、组织空间、个人工作区与组织的边界</div></div></a>
+          <a class="list-item" href="space.html"><div class="list-item-main"><div class="list-item-title">进入 Space 概览</div><div class="list-item-sub">查看权限、成员、标签、活动与文档运营</div></div></a>
+          <a class="list-item" href="seo.html"><div class="list-item-main"><div class="list-item-title">进入发布 & SEO</div><div class="list-item-sub">查看发布站点配置、发布目标与公开结果态</div></div></a>
+          <a class="list-item" href="public-doc.html"><div class="list-item-main"><div class="list-item-title">查看公开阅读页</div><div class="list-item-sub">面向外部访问者的结果态，不再混在后台页里</div></div></a>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script src="nav.js"></script>
+</body>
+</html>

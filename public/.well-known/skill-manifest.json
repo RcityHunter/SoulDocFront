@@ -1,0 +1,73 @@
+{
+  "name": "souldoc-site-manager",
+  "version": "1.0.0",
+  "description": "通过 Skill 注册 AI 账号，并按 Site / Section / Publish / Webhook 链路管理 SoulDoc 站点。",
+  "registration_flow": [
+    {
+      "key": "users.create_ai",
+      "title": "创建 AI 用户",
+      "method": "POST",
+      "endpoint": "/users",
+      "approval_required": true,
+      "async_task": false
+    },
+    {
+      "key": "credentials.issue",
+      "title": "签发 Skill 凭证",
+      "method": "POST",
+      "endpoint": "/users/:id/service-credentials",
+      "approval_required": true,
+      "async_task": false
+    },
+    {
+      "key": "manifest.publish",
+      "title": "暴露 Skill Manifest",
+      "method": "GET",
+      "endpoint": "/.well-known/skill-manifest.json",
+      "approval_required": false,
+      "async_task": false
+    }
+  ],
+  "site_management_flow": [
+    {
+      "key": "site.read",
+      "title": "读取站点与分区",
+      "method": "GET",
+      "endpoint": "/sites/:siteId/sections",
+      "approval_required": false,
+      "async_task": false
+    },
+    {
+      "key": "site.bind_space",
+      "title": "绑定公开 Space",
+      "method": "POST",
+      "endpoint": "/sites/:siteId/spaces/bind",
+      "approval_required": true,
+      "async_task": false
+    },
+    {
+      "key": "publish.preview",
+      "title": "生成发布预览",
+      "method": "POST",
+      "endpoint": "/publish-targets/:targetId/release",
+      "approval_required": true,
+      "async_task": true
+    },
+    {
+      "key": "git.sync",
+      "title": "同步外部分发",
+      "method": "POST",
+      "endpoint": "/spaces/:spaceId/git-sync/sync",
+      "approval_required": true,
+      "async_task": true
+    },
+    {
+      "key": "webhook.emit",
+      "title": "回推站点事件",
+      "method": "POST",
+      "endpoint": "/webhooks/:id/test",
+      "approval_required": false,
+      "async_task": true
+    }
+  ]
+}

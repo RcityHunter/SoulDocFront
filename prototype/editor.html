@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>编辑器 — SoulDoc</title>
+<link rel="stylesheet" href="style.css">
+<style>
+body { overflow: hidden; }
+.editor-full { display:flex; flex-direction:column; height:100vh; background:var(--panel2); }
+.editor-topbar { display:flex;align-items:center;gap:14px;padding:0 28px;height:var(--topbar-h);border-bottom:1px solid var(--line);background:rgba(255,255,255,.95);backdrop-filter:blur(12px);flex-shrink:0;position:sticky;top:0;z-index:100; }
+.editor-body-wrap { display:grid;grid-template-columns:260px minmax(0,1fr) 300px;flex:1;min-height:0;overflow:hidden; }
+.editor-doc-tree { border-right:1px solid var(--line);padding:0;overflow-y:auto;background:var(--panel);flex-shrink:0; }
+.editor-doc-tree-top { padding:14px 12px; border-bottom:1px solid var(--line); }
+.editor-doc-tree-body { padding:8px 4px; }
+.editor-center-wrap { display:flex;flex-direction:column;overflow:hidden; }
+.editor-toolbar-wrap { padding:8px 16px;border-bottom:1px solid var(--line);background:var(--panel);flex-shrink:0;display:flex;align-items:center;gap:2px;flex-wrap:wrap; }
+.editor-scroll { flex:1;overflow-y:auto;padding:0; }
+.editor-page { max-width:720px;margin:0 auto;padding:40px 48px;min-height:100%; }
+.editor-right-panel { border-left:1px solid var(--line);background:var(--panel);overflow-y:auto;flex-shrink:0;display:flex;flex-direction:column; }
+.toolbar-btn { padding:5px 9px;border-radius:6px;border:none;background:none;color:var(--text3);font-size:13px;cursor:pointer;font-family:inherit;transition:var(--transition); }
+.toolbar-btn:hover, .toolbar-btn.active { background:var(--panel3); }
+.toolbar-sep { width:1px;height:18px;background:var(--line);margin:0 4px; }
+.save-status { font-size:12px;color:var(--success);display:flex;align-items:center;gap:5px;white-space:nowrap; }
+.cr-banner { display:flex;align-items:center;gap:12px;padding:10px 20px;background:#fffbeb;border-bottom:1px solid #fcd34d;font-size:13px; }
+.edit-title { font-size:30px;font-weight:800;border:none;outline:none;background:none;width:100%;color:var(--text);letter-spacing:-.5px;line-height:1.3;margin-bottom:6px; }
+.edit-title::placeholder { color:var(--muted2); }
+.edit-subtitle { font-size:14px;border:none;outline:none;background:none;width:100%;color:var(--muted);margin-bottom:20px; }
+.doc-meta-row { display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-bottom:16px;border-bottom:1px solid var(--line);margin-bottom:20px; }
+.editable-area { outline:none;min-height:400px;line-height:1.8;font-size:15px;color:var(--text2); }
+.editable-area h2 { font-size:20px;font-weight:700;margin:24px 0 12px;color:var(--text); }
+.editable-area h3 { font-size:17px;font-weight:600;margin:20px 0 10px;color:var(--text); }
+.editable-area p { margin-bottom:14px; }
+.editable-area code { background:var(--panel3);padding:2px 7px;border-radius:4px;font-family:monospace;font-size:13px; }
+.editable-area ul { padding-left:20px;margin-bottom:14px; }
+.editable-area ul li { margin-bottom:6px; }
+.ai-panel-wrap { padding:0; }
+.ai-right-tab { display:flex;border-bottom:1px solid var(--line); }
+.ai-right-tab-item { flex:1;padding:10px;text-align:center;font-size:12.5px;color:var(--muted);cursor:pointer;transition:var(--transition); }
+.ai-right-tab-item.active { color:var(--primary);border-bottom:2px solid var(--primary); }
+.ai-quick-btn { display:flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--text2);width:100%;font-size:13px;margin-bottom:8px;cursor:pointer;transition:var(--transition); }
+.ai-quick-btn:hover { border-color:var(--primary-border);background:var(--primary-light);color:var(--primary); }
+.ai-quick-btn .ai-btn-icon { font-size:16px; }
+</style>
+</head>
+<body>
+<div class="app-layout">
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">SD</div>
+    <div class="brand-text"><h1>SoulDoc</h1><p>AI 原生知识工作台</p></div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">主导航</div>
+    <a class="nav-item" href="index.html"><span class="nav-icon">🏠</span>首页</a>
+    <a class="nav-item" href="spaces.html"><span class="nav-icon">🗂️</span>知识空间</a>
+    <a class="nav-item" href="search.html"><span class="nav-icon">🔍</span>搜索</a>
+    <a class="nav-item" href="notifications.html"><span class="nav-icon">🔔</span>通知中心 <span class="nav-badge">5</span></a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">当前空间 · SoulDoc Demo</div>
+    <a class="nav-item" href="space.html"><span class="nav-icon">📊</span>空间概览</a>
+    <a class="nav-item" href="docs.html"><span class="nav-icon">📎</span>文档中心</a>
+    <a class="nav-item active" href="editor.html"><span class="nav-icon">✏️</span>编辑器</a>
+    <a class="nav-item" href="change-request.html"><span class="nav-icon">🔁</span>变更请求</a>
+    <a class="nav-item" href="members.html"><span class="nav-icon">👥</span>成员权限</a>
+    <a class="nav-item" href="tags.html"><span class="nav-icon">🏷️</span>标签管理</a>
+    <a class="nav-item" href="files.html"><span class="nav-icon">📦</span>文件管理</a>
+    <a class="nav-item" href="seo.html"><span class="nav-icon">🌐</span>发布 & SEO</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">智能与语言</div>
+    <a class="nav-item" href="language.html"><span class="nav-icon">🌍</span>语言版本</a>
+    <a class="nav-item" href="ai-tasks.html"><span class="nav-icon">✨</span>AI 任务中心</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">平台</div>
+    <a class="nav-item" href="developer.html"><span class="nav-icon">🧰</span>开发者平台</a>
+    <a class="nav-item" href="settings.html"><span class="nav-icon">⚙️</span>系统设置</a>
+  </div>
+  <div class="sidebar-bottom">
+    <a class="nav-item" href="profile.html"><div class="avatar avatar-sm" style="background:var(--gradient)">A</div><span class="identity-inline">Admin <span class="identity-badge human">人类</span></span></a>
+  </div>
+</aside>
+
+<div class="main-area">
+<div class="editor-full">
+  <!-- Editor Top Bar -->
+  <div class="editor-topbar">
+    <div class="breadcrumb">
+      <a href="spaces.html">空间</a>
+      <span class="breadcrumb-sep">/</span>
+      <a href="space.html">SoulDoc Demo</a>
+      <span class="breadcrumb-sep">/</span>
+      <a href="docs.html">产品设计</a>
+      <span class="breadcrumb-sep">/</span>
+      <strong style="color:var(--text)">产品需求文档 PRD v2.0</strong>
+    </div>
+    <div class="topbar-right">
+      <a class="btn btn-sm" href="docs.html">← 文档中心</a>
+      <span class="save-status">✓ 2秒前已自动保存</span>
+      <span class="badge badge-warning">草稿</span>
+      <button class="btn btn-sm" onclick="openDrawer('version-drawer')">📦 版本</button>
+      <button class="btn btn-sm" onclick="openModal('cr-modal')">🔀 发起变更请求</button>
+      <button class="btn btn-sm btn-primary" onclick="openModal('publish-modal')">🌐 发布</button>
+      <div class="avatar avatar-sm" style="cursor:pointer" onclick="location.href='profile.html'">A</div>
+    </div>
+  </div>
+
+  <!-- Change Request Banner (shown when in CR mode) -->
+  <div class="cr-banner" id="cr-banner" style="display:none">
+    <span style="font-size:16px">🔀</span>
+    <strong>变更请求模式</strong>
+    <span style="color:var(--muted)">您正在草稿分支上编辑，修改不会直接影响已发布版本</span>
+    <div style="margin-left:auto;display:flex;gap:8px">
+      <button class="btn btn-sm" onclick="document.getElementById('cr-banner').style.display='none'">退出</button>
+      <button class="btn btn-sm btn-primary" onclick="openModal('cr-modal')">提交变更请求</button>
+    </div>
+  </div>
+
+  <div class="editor-body-wrap">
+    <!-- Left: Doc Tree -->
+    <div class="editor-doc-tree">
+      <div class="editor-doc-tree-top">
+        <input class="input" style="font-size:13px;padding:8px 12px" placeholder="🔍 搜索文档...">
+      </div>
+      <div class="editor-doc-tree-body">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;padding:4px 8px;margin-bottom:8px">文档目录</div>
+        <div class="tree-node" onclick="location.href='docs.html'">📂 产品设计</div>
+        <div class="tree-children" style="padding-left:12px">
+          <div class="tree-node active">📋 PRD v2.0</div>
+          <div class="tree-node" onclick="location.href='docs.html'">🗺️ 产品路线图</div>
+          <div class="tree-node" onclick="location.href='docs.html'">🎨 UI/UX 设计规范</div>
+        </div>
+        <div class="tree-node" onclick="location.href='docs.html'">📂 技术文档</div>
+        <div class="tree-node" onclick="location.href='docs.html'">📂 AI 能力设计</div>
+        <div style="margin-top:12px;padding:0 8px 8px">
+          <button class="btn btn-sm w-full" style="justify-content:center;font-size:12px" onclick="openModal('new-doc-modal')">＋ 新建文档</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center: Editor -->
+    <div class="editor-center-wrap">
+      <!-- Toolbar -->
+      <div class="editor-toolbar-wrap">
+        <select class="btn" style="font-size:12.5px;padding:4px 10px;height:30px">
+          <option>正文</option><option>标题1</option><option>标题2</option><option>标题3</option><option>代码块</option><option>引用</option>
+        </select>
+        <div class="toolbar-sep"></div>
+        <button class="toolbar-btn" title="粗体 (⌘B)" onclick="showToast('已应用：粗体 (⌘B)','default')"><b>B</b></button>
+        <button class="toolbar-btn" title="斜体 (⌘I)" onclick="showToast('已应用：斜体 (⌘I)','default')"><i>I</i></button>
+        <button class="toolbar-btn" title="下划线 (⌘U)" onclick="showToast('已应用：下划线 (⌘U)','default')"><u>U</u></button>
+        <button class="toolbar-btn" title="删除线" onclick="showToast('已应用：删除线','default')"><s>S</s></button>
+        <button class="toolbar-btn" title="行内代码" onclick="showToast('已应用：行内代码','default')">`c`</button>
+        <div class="toolbar-sep"></div>
+        <button class="toolbar-btn" title="无序列表" onclick="showToast('已应用：无序列表','default')">≡</button>
+        <button class="toolbar-btn" title="有序列表" onclick="showToast('已应用：有序列表','default')">1.</button>
+        <button class="toolbar-btn" title="任务列表" onclick="showToast('已应用：任务列表','default')">☑</button>
+        <div class="toolbar-sep"></div>
+        <button class="toolbar-btn" title="插入链接" onclick="showToast('已打开：插入链接','default')">🔗</button>
+        <button class="toolbar-btn" title="插入图片" onclick="openModal('upload-modal')">🖼️</button>
+        <button class="toolbar-btn" title="插入表格" onclick="showToast('已打开：插入表格','default')">⊞</button>
+        <button class="toolbar-btn" title="插入代码块" onclick="showToast('已打开：插入代码块','default')">{ }</button>
+        <div class="toolbar-sep"></div>
+        <button class="toolbar-btn" title="对齐" onclick="showToast('已打开：对齐选项','default')">⬛</button>
+        <div class="toolbar-sep"></div>
+        <button class="toolbar-btn active" onclick="this.classList.toggle('active')" title="AI 辅助">✨ AI</button>
+        <button class="toolbar-btn" title="版本历史" onclick="openDrawer('version-drawer')">📦</button>
+        <button class="toolbar-btn" title="全屏" onclick="showToast('全屏模式待接入','default')">⛶</button>
+      </div>
+
+      <!-- Editable Content -->
+      <div class="editor-scroll">
+        <div class="editor-page">
+          <input class="edit-title" type="text" value="产品需求文档 PRD v2.0" placeholder="文档标题...">
+          <input class="edit-subtitle" type="text" value="SoulDoc — AI 原生知识生产与管理平台" placeholder="副标题（可选）...">
+          <div class="doc-meta-row">
+            <div class="flex items-center gap-8"><div class="avatar avatar-sm">Z</div><span class="identity-inline" style="font-size:13px;color:var(--muted)">张三 <span class="identity-badge human">人类</span></span></div>
+            <span class="tag" onclick="location.href='tags.html'"><span class="tag-dot" style="background:#4f46e5"></span>AI原生</span>
+            <span class="tag" onclick="location.href='tags.html'"><span class="tag-dot" style="background:#f59e0b"></span>产品设计</span>
+            <button class="btn btn-sm" onclick="openModal('tag-modal')" style="font-size:12px;padding:4px 10px">+ 标签</button>
+          </div>
+          <div class="editable-area" contenteditable="true" id="editor-content">
+<h2>1. 产品定位</h2>
+<p>SoulDoc 是一套面向 AI 原生内容生产、知识组织、团队协作与多角色共创的文档/知识系统。以 Space / Doc / Version / Tag / File / Member 为核心对象模型，以 AI 协作、知识沉淀、搜索召回、权限隔离、多场景发布为关键能力。</p>
+<p>SoulDoc 不是单纯"写文档"的工具，而是一个面向 AI 时代的"内容资产生产与管理平台"。</p>
+
+<h2>2. 核心功能模块</h2>
+<h3>2.1 空间系统 (Space)</h3>
+<ul>
+  <li>创建多个独立知识空间</li>
+  <li>支持公开空间与私有空间</li>
+  <li>支持空间描述、Slug、品牌信息、主题配置</li>
+  <li>多租户能力的承载单位</li>
+</ul>
+
+<h3>2.2 文档系统 (Document)</h3>
+<ul>
+  <li>文档树结构 / 章节层级</li>
+  <li>Markdown 编辑与实时预览</li>
+  <li>封面、摘要、Slug、可见性设置</li>
+  <li>关联标签、附件、评论</li>
+</ul>
+
+<h2>3. AI 能力层级设计</h2>
+<p>SoulDoc 的 AI 能力分为 5 个层级，从辅助写作到自动化运营逐层递进...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Smart Panel -->
+    <div class="editor-right-panel">
+      <div class="ai-right-tab">
+        <div class="ai-right-tab-item active" onclick="switchAiTab('ai',this)">✨ 智能</div>
+        <div class="ai-right-tab-item" onclick="switchAiTab('seo',this)">🌍 语言</div>
+        <div class="ai-right-tab-item" onclick="switchAiTab('info',this)">ℹ️ 信息</div>
+      </div>
+
+      <!-- AI Tab -->
+      <div id="ai-panel-ai" style="padding:14px;flex:1">
+        <div style="background:linear-gradient(135deg,#1e1b4b,#1e3a5f);border-radius:var(--radius);padding:14px;margin-bottom:14px">
+          <div style="color:#fff;font-size:13px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:6px">
+            <span>✨</span> 智能写作
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <button class="ai-tool-btn" onclick="showToast('AI正在生成摘要，请稍候...','default')"><span class="ai-tool-icon">📝</span>生成文档摘要</button>
+            <button class="ai-tool-btn" onclick="showToast('AI正在优化大纲...','default')"><span class="ai-tool-icon">📋</span>AI 优化大纲</button>
+            <button class="ai-tool-btn" onclick="showToast('AI正在提取标签...','default')"><span class="ai-tool-icon">🏷️</span>智能提取标签</button>
+            <button class="ai-tool-btn" onclick="showToast('AI生成FAQ中...','default')"><span class="ai-tool-icon">❓</span>生成 FAQ</button>
+          </div>
+        </div>
+
+        <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">写作辅助</div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px">
+          <button class="ai-quick-btn" onclick="openModal('dialogue-modal')"><span class="ai-btn-icon">💬</span>对话转文档</button>
+          <button class="ai-quick-btn" onclick="showToast('AI润色中...','default')"><span class="ai-btn-icon">✨</span>润色选中内容</button>
+          <button class="ai-quick-btn" onclick="showToast('AI扩写中...','default')"><span class="ai-btn-icon">📈</span>扩写选中段落</button>
+          <button class="ai-quick-btn" onclick="showToast('AI压缩中...','default')"><span class="ai-btn-icon">📉</span>压缩选中段落</button>
+          <button class="ai-quick-btn" onclick="openModal('translate-modal')"><span class="ai-btn-icon">🌍</span>翻译文档</button>
+          <button class="ai-quick-btn" onclick="showToast('AI审校中...','default')"><span class="ai-btn-icon">🔍</span>AI 审校检查</button>
+        </div>
+
+        <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">知识检索</div>
+        <div style="border:1px solid var(--line);border-radius:10px;padding:12px">
+          <input class="input" style="font-size:13px;padding:8px 12px;margin-bottom:8px" placeholder="问AI关于本空间的知识...">
+          <button class="btn btn-sm w-full btn-primary" style="justify-content:center" onclick="location.href='search.html'">🔍 语义检索</button>
+        </div>
+      </div>
+
+      <!-- Locale Tab -->
+      <div id="ai-panel-seo" style="padding:14px;display:none">
+        <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:12px">语言版本</div>
+        <div class="surface-note" style="margin-bottom:10px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><strong>文档组</strong><span class="badge badge-info">prd-core</span></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <span class="locale-chip active">zh-CN 主语言</span>
+            <span class="locale-chip">en-US 已发布</span>
+            <span class="locale-chip">ja-JP 待复审</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" style="font-size:12px">默认语言</label>
+          <select class="input select" style="font-size:13px"><option>zh-CN</option><option>en-US</option></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" style="font-size:12px">回退语言</label>
+          <select class="input select" style="font-size:13px"><option>en-US</option><option>zh-CN</option></select>
+        </div>
+        <button class="btn btn-sm w-full btn-primary" style="justify-content:center;margin-bottom:8px" onclick="openModal('translate-modal')">🌍 新增语言版本</button>
+        <button class="btn btn-sm w-full" style="justify-content:center" onclick="location.href='language.html'">打开语言版本中心</button>
+      </div>
+
+      <!-- Info Tab -->
+      <div id="ai-panel-info" style="padding:14px;display:none">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">文档ID</span><span class="font-600">doc_prd_v2</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">状态</span><span class="badge badge-warning">草稿</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">可见性</span><span>🔒 私有</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">创建人</span><span class="identity-inline">Admin <span class="identity-badge human">人类</span></span></div>
+          <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">创建时间</span><span>2026-04-01</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">字数统计</span><span>~1,240 字</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">版本数</span><span>3</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">评论数</span><span>3</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">浏览量</span><span>1,234</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Doc Group</span><span>prd-core / zh-CN</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">回收站窗口</span><span>30天</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">审计链</span><span>已开启</span></div>
+          <div style="margin-top:4px;padding-top:12px;border-top:1px solid var(--line)">
+            <button class="btn btn-sm w-full" style="justify-content:center;margin-bottom:6px" onclick="openDrawer('version-drawer')">📦 版本历史</button>
+            <button class="btn btn-sm w-full btn-danger" style="justify-content:center" onclick="showToast('文档已移入回收站，30天内可恢复','warning')">🗑️ 移入回收站</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+
+<div class="modal-overlay" id="dialogue-modal">
+  <div class="modal">
+    <div class="modal-header"><h3>💬 对话转文档</h3><button class="btn-ghost btn-icon" onclick="closeModal('dialogue-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">原始对话 / 会议记录</label><textarea class="input textarea" style="height:120px" placeholder="粘贴聊天记录、会议纪要或想法片段..."></textarea></div>
+      <div class="form-group"><label class="form-label">生成策略</label><select class="input select"><option>先生成结构化提纲，再写成草稿</option><option>直接生成完整初稿</option><option>只提取章节、标签和待办</option></select></div>
+      <div class="surface-note" style="font-size:12px;color:var(--muted);line-height:1.7">系统会先给出工作流预览：章节结构、标签建议、语言版本影响、是否需要 CR 和发布前检查。</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('dialogue-modal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('dialogue-modal');showToast('对话已加入文档生成队列','success')">生成预览</button>
+    </div>
+  </div>
+</div>
+
+<!-- Version Drawer -->
+<div class="drawer-overlay" id="version-drawer">
+  <div class="drawer" style="position:fixed;top:0;right:0;width:380px">
+    <div class="drawer-header">
+      <h3>📦 版本历史</h3>
+      <button class="btn-ghost btn-icon" onclick="closeDrawer('version-drawer')">✕</button>
+    </div>
+    <div class="drawer-body">
+      <button class="btn btn-sm btn-primary w-full" style="justify-content:center;margin-bottom:16px" onclick="showToast('版本快照已保存','success')">📦 保存当前版本快照</button>
+      <div style="display:flex;flex-direction:column;gap:0">
+        <div class="version-item">
+          <div class="version-dot"></div>
+          <div class="version-line"></div>
+          <div style="flex:1">
+            <div style="font-size:13.5px;font-weight:600">v2.0 草稿 (当前)</div>
+            <div style="font-size:12px;color:var(--muted)"><span class="identity-inline">张三 <span class="identity-badge human">人类</span></span> · 8分钟前 · 自动保存</div>
+          </div>
+          <span class="badge badge-primary">当前</span>
+        </div>
+        <div class="version-item">
+          <div class="version-dot" style="background:var(--success)"></div>
+          <div class="version-line"></div>
+          <div style="flex:1">
+            <div style="font-size:13.5px;font-weight:600">v1.5 — 更新AI章节</div>
+            <div style="font-size:12px;color:var(--muted)"><span class="identity-inline">Admin <span class="identity-badge human">人类</span></span> · 昨天 14:30 · 手动快照</div>
+          </div>
+          <div style="display:flex;gap:4px">
+            <button class="btn btn-sm" onclick="showToast('版本对比中...','default')">对比</button>
+            <button class="btn btn-sm" onclick="showToast('已恢复到v1.5','success')">恢复</button>
+          </div>
+        </div>
+        <div class="version-item">
+          <div class="version-dot"></div>
+          <div style="flex:1">
+            <div style="font-size:13.5px;font-weight:600">v1.0 — 首版</div>
+            <div style="font-size:12px;color:var(--muted)"><span class="identity-inline">Admin <span class="identity-badge human">人类</span></span> · 3天前 · 手动快照</div>
+          </div>
+          <div style="display:flex;gap:4px">
+            <button class="btn btn-sm" onclick="location.href='versions.html'">对比</button>
+            <button class="btn btn-sm" onclick="showToast('已恢复到v1.0','success')">恢复</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modals -->
+<div class="modal-overlay" id="cr-modal">
+  <div class="modal">
+    <div class="modal-header"><h3>🔀 发起变更请求</h3><button class="btn-ghost btn-icon" onclick="closeModal('cr-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">变更标题 <span class="required">*</span></label><input class="input" placeholder="简述本次变更内容" value="更新 PRD 第三节 AI 能力层级说明"></div>
+      <div class="form-group"><label class="form-label">变更说明</label><textarea class="input textarea" placeholder="详细说明变更原因和内容...">根据产品方向调整，补充了公共/私有空间规则，以及同一文档组下的多语言版本呈现方式。</textarea></div>
+      <div class="form-group"><label class="form-label">指定审核人</label>
+        <select class="input select"><option>Admin（空间 Owner）</option><option>李四（Admin）</option><option>任意管理员</option></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('cr-modal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('cr-modal');showToast('变更请求已提交，等待审核','success');document.getElementById('cr-banner').style.display='flex'">提交变更请求</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="publish-modal">
+  <div class="modal">
+    <div class="modal-header"><h3>🌐 发布文档</h3><button class="btn-ghost btn-icon" onclick="closeModal('publish-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">发布到</label><select class="input select"><option>🌐 公共空间页面</option><option>🔒 私有空间成员页</option></select></div>
+      <div style="background:#f0fdf4;border-radius:8px;padding:12px;font-size:13px;color:#065f46">✓ SEO 信息已配置 &nbsp;✓ 标签已设置 &nbsp;✓ 摘要已生成</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('publish-modal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('publish-modal');showToast('文档已发布至发布站点','success')">确认发布</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="translate-modal">
+  <div class="modal">
+    <div class="modal-header"><h3>🌍 新增语言版本</h3><button class="btn-ghost btn-icon" onclick="closeModal('translate-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">目标语言</label><select class="input select"><option>English (英文)</option><option>日本語 (日文)</option><option>한국어 (韩文)</option><option>Español (西班牙文)</option></select></div>
+      <div class="form-group"><label class="form-label">创建方式</label><select class="input select"><option>从源语言自动生成初稿</option><option>创建空白版本</option><option>复制现有英文版本</option></select></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('translate-modal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('translate-modal');showToast('语言版本已加入任务队列，预计2分钟生成初稿','default')">创建版本</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="new-doc-modal">
+  <div class="modal">
+    <div class="modal-header"><h3>新建文档</h3><button class="btn-ghost btn-icon" onclick="closeModal('new-doc-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">文档标题 <span class="required">*</span></label><input class="input" placeholder="文档标题"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('new-doc-modal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('new-doc-modal');showToast('文档已创建','success')">创建</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="upload-modal">
+  <div class="modal">
+    <div class="modal-header"><h3>🖼️ 插入图片</h3><button class="btn-ghost btn-icon" onclick="closeModal('upload-modal')">✕</button></div>
+    <div class="modal-body">
+      <div style="border:2px dashed var(--line);border-radius:10px;padding:32px;text-align:center;cursor:pointer;transition:var(--transition)" onclick="showToast('文件选择器打开','default')">
+        <div style="font-size:32px;margin-bottom:10px">📁</div>
+        <div style="font-size:14px;font-weight:500;margin-bottom:4px">拖放文件到这里</div>
+        <div style="font-size:13px;color:var(--muted)">支持 PNG, JPG, GIF, WebP · 最大 10MB</div>
+      </div>
+      <div style="text-align:center;margin-top:12px;font-size:13px;color:var(--muted)">或 <a href="files.html" style="color:var(--primary)">从文件库选择</a></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('upload-modal')">取消</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="tag-modal">
+  <div class="modal">
+    <div class="modal-header"><h3>管理标签</h3><button class="btn-ghost btn-icon" onclick="closeModal('tag-modal')">✕</button></div>
+    <div class="modal-body">
+      <input class="input" placeholder="搜索或创建标签..." style="margin-bottom:12px">
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <div class="tag" style="cursor:pointer;border-color:var(--primary);color:var(--primary);background:var(--primary-light)"><span class="tag-dot" style="background:#4f46e5"></span>AI原生 ✓</div>
+        <div class="tag" style="cursor:pointer;border-color:var(--primary);color:var(--primary);background:var(--primary-light)"><span class="tag-dot" style="background:#f59e0b"></span>产品设计 ✓</div>
+        <div class="tag" style="cursor:pointer"><span class="tag-dot" style="background:#10b981"></span>API文档</div>
+        <div class="tag" style="cursor:pointer"><span class="tag-dot" style="background:#ef4444"></span>技术规范</div>
+        <div class="tag" style="cursor:pointer"><span class="tag-dot" style="background:#8b5cf6"></span>架构设计</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('tag-modal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('tag-modal');showToast('标签已更新','success')">确认</button>
+    </div>
+  </div>
+</div>
+
+<script src="nav.js"></script>
+<script>
+function switchAiTab(id, el) {
+  document.querySelectorAll('.ai-right-tab-item').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('#ai-panel-ai, #ai-panel-seo, #ai-panel-info').forEach(p => p.style.display = 'none');
+  document.getElementById('ai-panel-' + id).style.display = 'block';
+}
+
+// Auto-save indicator
+let saveTimer;
+document.getElementById('editor-content').addEventListener('input', () => {
+  const status = document.querySelector('.save-status');
+  status.style.color = 'var(--muted)';
+  status.textContent = '正在保存...';
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    status.style.color = 'var(--success)';
+    status.textContent = '✓ 刚刚已保存';
+  }, 800);
+});
+
+document.querySelectorAll('.toolbar-btn:not([onclick])').forEach(btn => {
+  btn.addEventListener('click', () => {
+    showToast(`已应用：${btn.title}`, 'default');
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>变更请求 — SoulDoc</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.cr-card { background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-bottom:16px; }
+.cr-card-header { display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--line); }
+.cr-status { display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:var(--radius-full);font-size:12.5px;font-weight:600; }
+.cr-status.pending { background:#fef3c7;color:#92400e;border:1px solid #fcd34d; }
+.cr-status.reviewing { background:#dbeafe;color:#1e40af;border:1px solid #93c5fd; }
+.cr-status.changes { background:#fee2e2;color:#991b1b;border:1px solid #fca5a5; }
+.cr-status.merged { background:#d1fae5;color:#065f46;border:1px solid #6ee7b7; }
+.cr-diff { padding:0;border-radius:var(--radius-sm);overflow:hidden;margin:16px 20px; }
+.diff-header { background:var(--panel2);padding:8px 16px;font-size:12.5px;color:var(--muted);border-bottom:1px solid var(--line);font-family:monospace; }
+.review-btn-group { display:flex;gap:8px;padding:16px 20px;border-top:1px solid var(--line);background:var(--panel2); }
+</style>
+</head>
+<body>
+<div class="app-layout">
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">SD</div>
+    <div class="brand-text"><h1>SoulDoc</h1><p>AI 原生知识工作台</p></div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">主导航</div>
+    <a class="nav-item" href="index.html"><span class="nav-icon">🏠</span>首页</a>
+    <a class="nav-item" href="spaces.html"><span class="nav-icon">🗂️</span>知识空间</a>
+    <a class="nav-item" href="search.html"><span class="nav-icon">🔍</span>搜索</a>
+    <a class="nav-item" href="notifications.html"><span class="nav-icon">🔔</span>通知中心 <span class="nav-badge">5</span></a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">当前空间 · SoulDoc Demo</div>
+    <a class="nav-item" href="space.html"><span class="nav-icon">📌</span>空间概览</a>
+    <a class="nav-item" href="docs.html"><span class="nav-icon">📚</span>文档中心</a>
+    <a class="nav-item" href="editor.html"><span class="nav-icon">✏️</span>编辑器</a>
+    <a class="nav-item active" href="change-request.html"><span class="nav-icon">🧾</span>变更请求</a>
+    <a class="nav-item" href="members.html"><span class="nav-icon">👥</span>成员权限</a>
+    <a class="nav-item" href="tags.html"><span class="nav-icon">🏷️</span>标签管理</a>
+    <a class="nav-item" href="files.html"><span class="nav-icon">📁</span>文件管理</a>
+    <a class="nav-item" href="seo.html"><span class="nav-icon">🌐</span>发布 & SEO</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">智能与语言</div>
+    <a class="nav-item" href="language.html"><span class="nav-icon">🌍</span>语言版本</a>
+    <a class="nav-item" href="ai-tasks.html"><span class="nav-icon">✨</span>AI 任务中心</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">平台</div>
+    <a class="nav-item" href="developer.html"><span class="nav-icon">🛠️</span>开发者平台</a>
+    <a class="nav-item" href="settings.html"><span class="nav-icon">⚙️</span>系统设置</a>
+  </div>
+  <div class="sidebar-bottom">
+    <a class="nav-item" href="profile.html"><div class="avatar avatar-sm" style="background:var(--gradient)">A</div><span class="identity-inline">Admin <span class="identity-badge human">人类</span></span></a>
+  </div>
+</aside>
+
+<div class="main-area">
+  <div class="topbar">
+    <div class="breadcrumb">
+      <a href="space.html">SoulDoc Demo</a><span class="breadcrumb-sep">›</span>
+      <strong style="color:var(--text)">🔀 变更请求</strong>
+    </div>
+    <div class="topbar-right">
+      <button class="btn btn-sm btn-primary" onclick="openModal('new-cr-modal')">＋ 发起变更请求</button>
+    </div>
+  </div>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div><h1>🔀 变更请求</h1><p>基于 Git 工作流的内容协作机制，确保内容质量与追踪性</p></div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab active" data-tab="tab-open">待处理 (3)</div>
+      <div class="tab" data-tab="tab-reviewing">审核中 (1)</div>
+      <div class="tab" data-tab="tab-merged">已合并 (8)</div>
+      <div class="tab" data-tab="tab-closed">已关闭 (2)</div>
+    </div>
+
+    <!-- Open CRs -->
+    <div class="tab-content active" id="tab-open">
+      <!-- CR #15 -->
+      <div class="cr-card">
+        <div class="cr-card-header">
+          <span class="cr-status pending">待审核</span>
+          <div style="flex:1">
+            <div style="font-size:15px;font-weight:600;margin-bottom:3px">
+              <a href="#" onclick="openModal('cr-detail-modal')" style="color:var(--text)">#15 更新 API 认证章节 — 新增 OIDC 说明</a>
+            </div>
+            <div style="font-size:12.5px;color:var(--muted)">
+              <a href="docs.html">API 接口文档</a> · <span class="identity-inline">张三 <span class="identity-badge human">人类</span></span> 提交 · 30分钟前
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="avatar avatar-sm" style="background:linear-gradient(135deg,#10b981,#059669)">Z</div>
+            <button class="btn btn-sm" onclick="openModal('cr-detail-modal')">查看详情</button>
+          </div>
+        </div>
+        <div style="padding:0 20px 16px">
+          <p style="font-size:13.5px;color:var(--text2);margin-bottom:12px">根据后端实现更新，新增了 OIDC 登录流程说明，补充了 OAuth2.0 回调接口的参数字段说明。</p>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)">
+            <span>📝 3处修改</span><span>+45行</span><span class="text-danger">-12行</span>
+            <span style="margin-left:auto">指定审核人：<span class="identity-inline">Admin <span class="identity-badge human">人类</span></span></span>
+          </div>
+        </div>
+        <div class="review-btn-group">
+          <button class="btn btn-sm btn-success" onclick="showToast('已批准，正在合并...','success')">✓ 批准并合并</button>
+          <button class="btn btn-sm" onclick="openModal('cr-detail-modal')">👁️ 查看差异</button>
+          <button class="btn btn-sm btn-danger" onclick="showToast('已请求修改','warning')">↩ 请求修改</button>
+        </div>
+      </div>
+
+      <!-- CR #14 -->
+      <div class="cr-card">
+        <div class="cr-card-header">
+          <span class="cr-status changes">需修改</span>
+          <div style="flex:1">
+            <div style="font-size:15px;font-weight:600;margin-bottom:3px">
+              <a href="#" onclick="openModal('cr-detail-modal')" style="color:var(--text)">#14 修订安全设计章节 — 增加限流配置说明</a>
+            </div>
+            <div style="font-size:12.5px;color:var(--muted)">
+              <a href="docs.html">安全设计文档</a> · <span class="identity-inline">王五 <span class="identity-badge human">人类</span></span> 提交 · 2小时前
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="avatar avatar-sm" style="background:linear-gradient(135deg,#8b5cf6,#ec4899)">W</div>
+            <button class="btn btn-sm" onclick="openModal('cr-detail-modal')">查看详情</button>
+          </div>
+        </div>
+        <div style="padding:0 20px 16px">
+          <div style="background:#fff1f2;border-left:3px solid var(--danger);padding:10px 14px;border-radius:0 8px 8px 0;font-size:13px;color:#7f1d1d;margin-bottom:12px">
+            <strong><span class="identity-inline">Admin <span class="identity-badge human">人类</span></span> 请求修改：</strong> 限流配置参数需要与后端实际配置保持一致，请核实 rate_limit 字段的单位是 req/s 还是 req/min。
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)">
+            <span>📝 1处修改</span><span>+18行</span><span class="text-danger">-3行</span>
+          </div>
+        </div>
+        <div class="review-btn-group">
+          <button class="btn btn-sm btn-primary" onclick="location.href='editor.html'">✏️ 修改文档</button>
+          <button class="btn btn-sm" onclick="openModal('cr-detail-modal')">💬 查看评论</button>
+        </div>
+      </div>
+
+      <!-- CR #13 -->
+      <div class="cr-card">
+        <div class="cr-card-header">
+          <span class="cr-status pending">待审核</span>
+          <div style="flex:1">
+            <div style="font-size:15px;font-weight:600;margin-bottom:3px">
+              <a href="#" onclick="openModal('cr-detail-modal')" style="color:var(--text)">#13 新增数据库表说明 — document_block 结构补充</a>
+            </div>
+            <div style="font-size:12.5px;color:var(--muted)">
+              <a href="docs.html">数据库设计文档</a> · <span class="identity-inline">李四 <span class="identity-badge human">人类</span></span> 提交 · 3小时前
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="avatar avatar-sm" style="background:linear-gradient(135deg,#f59e0b,#ef4444)">L</div>
+            <button class="btn btn-sm" onclick="openModal('cr-detail-modal')">查看详情</button>
+          </div>
+        </div>
+        <div style="padding:0 20px 16px">
+          <p style="font-size:13.5px;color:var(--text2);margin-bottom:12px">补充了 document_block 表的 embedding_status 字段说明，新增了 AI 任务与 block 的关联关系说明。</p>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)">
+            <span>📝 2处修改</span><span>+28行</span>
+            <span style="margin-left:auto">指定审核人：<span class="identity-inline">Admin <span class="identity-badge human">人类</span></span></span>
+          </div>
+        </div>
+        <div class="review-btn-group">
+          <button class="btn btn-sm btn-success" onclick="showToast('已批准，正在合并...','success')">✓ 批准并合并</button>
+          <button class="btn btn-sm" onclick="openModal('cr-detail-modal')">👁️ 查看差异</button>
+          <button class="btn btn-sm btn-danger" onclick="showToast('已请求修改','warning')">↩ 请求修改</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reviewing Tab -->
+    <div class="tab-content" id="tab-reviewing">
+      <div class="cr-card">
+        <div class="cr-card-header">
+          <span class="cr-status reviewing">审核中</span>
+          <div style="flex:1">
+            <div style="font-size:15px;font-weight:600;margin-bottom:3px">#12 重构架构概述章节</div>
+            <div style="font-size:12.5px;color:var(--muted)">系统架构设计 · <span class="identity-inline">Admin <span class="identity-badge human">人类</span></span> · 4小时前</div>
+          </div>
+        </div>
+        <div style="padding:0 20px 16px;font-size:13.5px;color:var(--muted)">指定审核人：<span class="identity-inline">李四 <span class="identity-badge human">人类</span></span> · 已查看，正在评审</div>
+      </div>
+    </div>
+
+    <!-- Merged Tab -->
+    <div class="tab-content" id="tab-merged">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="list-item">
+          <span class="badge badge-success">已合并</span>
+          <div class="list-item-main"><div class="list-item-title">#11 更新部署指南至 Docker v24</div><div class="list-item-sub"><span class="identity-inline">李四 <span class="identity-badge human">人类</span></span> · 昨天 · 批准人：<span class="identity-inline">Admin <span class="identity-badge human">人类</span></span></div></div>
+          <button class="btn btn-sm" onclick="showToast('查看合并记录','default')">详情</button>
+        </div>
+        <div class="list-item">
+          <span class="badge badge-success">已合并</span>
+          <div class="list-item-main"><div class="list-item-title">#10 添加向量检索设计说明</div><div class="list-item-sub"><span class="identity-inline">张三 <span class="identity-badge human">人类</span></span> · 2天前 · 批准人：<span class="identity-inline">Admin <span class="identity-badge human">人类</span></span></div></div>
+          <button class="btn btn-sm" onclick="openModal('cr-detail-modal')">详情</button>
+        </div>
+        <div class="list-item">
+          <span class="badge badge-success">已合并</span>
+          <div class="list-item-main"><div class="list-item-title">#9 国际化章节首版</div><div class="list-item-sub"><span class="identity-inline">Admin <span class="identity-badge human">人类</span></span> · 3天前 · 批准人：<span class="identity-inline">李四 <span class="identity-badge human">人类</span></span></div></div>
+          <button class="btn btn-sm" onclick="openModal('cr-detail-modal')">详情</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="tab-closed">
+      <div class="empty-state" style="padding:40px">
+        <div class="empty-state-icon">🔒</div>
+        <h3>2 个已关闭的变更请求</h3>
+        <p>这些变更请求已被拒绝或取消</p>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- CR Detail Modal -->
+<div class="modal-overlay" id="cr-detail-modal">
+  <div class="modal" style="max-width:680px">
+    <div class="modal-header">
+      <div>
+        <h3>#15 更新 API 认证章节</h3>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+          <span class="cr-status pending">待审核</span>
+          <span style="font-size:13px;color:var(--muted)"><span class="identity-inline">张三 <span class="identity-badge human">人类</span></span> · 30分钟前</span>
+        </div>
+      </div>
+      <button class="btn-ghost btn-icon" onclick="closeModal('cr-detail-modal')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:0">
+      <div style="padding:16px 24px;border-bottom:1px solid var(--line)">
+        <p style="font-size:14px;color:var(--text2)">根据后端实现更新，新增了 OIDC 登录流程说明，补充了 OAuth2.0 回调接口的参数字段说明。</p>
+      </div>
+      <!-- Diff -->
+      <div style="padding:16px 24px;border-bottom:1px solid var(--line)">
+        <div style="font-size:13px;font-weight:600;margin-bottom:12px">📝 变更差异</div>
+        <div class="cr-diff" style="border:1px solid var(--line);border-radius:8px;overflow:hidden;font-family:monospace">
+          <div class="diff-header">API接口文档.md — 认证章节</div>
+          <div class="diff-line diff-neutral">  ## 认证方式</div>
+          <div class="diff-line diff-neutral">  </div>
+          <div class="diff-line diff-neutral">  SoulDoc 支持以下认证方式：</div>
+          <div class="diff-line diff-remove">- - JWT Token 认证</div>
+          <div class="diff-line diff-remove">- - OAuth 2.0</div>
+          <div class="diff-line diff-add">+ - JWT Token 认证（主要方式）</div>
+          <div class="diff-line diff-add">+ - OAuth 2.0（第三方登录）</div>
+          <div class="diff-line diff-add">+ - OIDC（企业级身份认证）</div>
+          <div class="diff-line diff-add">+ - Rainbow-Auth 集成（内部系统）</div>
+          <div class="diff-line diff-neutral">  </div>
+          <div class="diff-line diff-add">+ ### OIDC 配置说明</div>
+          <div class="diff-line diff-add">+ OIDC 登录需要配置 `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`...</div>
+        </div>
+      </div>
+      <!-- Review Comments -->
+      <div style="padding:16px 24px">
+        <div style="font-size:13px;font-weight:600;margin-bottom:12px">💬 审核讨论</div>
+        <div style="background:var(--panel2);border-radius:10px;padding:12px;margin-bottom:12px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <div class="avatar avatar-sm">A</div>
+            <strong style="font-size:13px" class="identity-inline">Admin <span class="identity-badge human">人类</span></strong>
+            <span style="font-size:11px;color:var(--muted)">10分钟前</span>
+          </div>
+          <p style="font-size:13px;color:var(--text2)">内容很清楚，OIDC配置示例很有帮助。请确认 Rainbow-Auth 集成的文档链接是否需要同步更新？</p>
+        </div>
+        <textarea class="input" style="height:72px;font-size:13px;margin-bottom:8px" placeholder="添加审核意见..."></textarea>
+        <button class="btn btn-sm" onclick="showToast('评论已提交','success')">发送</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" onclick="closeModal('cr-detail-modal');showToast('已请求修改','warning')">↩ 请求修改</button>
+      <button class="btn btn-success btn-sm" onclick="closeModal('cr-detail-modal');showToast('变更已批准并合并','success')">✓ 批准并合并</button>
+    </div>
+  </div>
+</div>
+
+<!-- New CR Modal -->
+<div class="modal-overlay" id="new-cr-modal">
+  <div class="modal">
+    <div class="modal-header"><h3>发起变更请求</h3><button class="btn-ghost btn-icon" onclick="closeModal('new-cr-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">变更标题 <span class="required">*</span></label><input class="input" placeholder="简述变更内容"></div>
+      <div class="form-group"><label class="form-label">关联文档</label><select class="input select"><option>选择文档...</option><option>产品需求文档 PRD</option><option>API 接口文档</option><option>系统架构设计</option></select></div>
+      <div class="form-group"><label class="form-label">变更说明</label><textarea class="input textarea" placeholder="详细说明变更内容和原因..."></textarea></div>
+      <div class="form-group" style="margin-bottom:0"><label class="form-label">审核人</label><select class="input select"><option>Admin（人类）</option><option>李四（人类）</option><option>任意管理员</option></select></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('new-cr-modal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('new-cr-modal');showToast('变更请求已提交','success')">提交</button>
+    </div>
+  </div>
+</div>
+
+<script src="nav.js"></script>
+</body>
+</html>

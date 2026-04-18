@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoulDoc — AI 原生知识工作台</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.home-legacy { display:none; }
+.hero-grid { display:grid; grid-template-columns:1.15fr .85fr; gap:20px; margin-bottom:20px; }
+.hero-shell { margin-bottom:20px; padding:22px; }
+.hero-shell-header { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; margin-bottom:0; }
+.hero-structure-note { max-width:430px; padding:14px 16px; border:1px solid var(--line); border-radius:14px; background:var(--panel2); font-size:13px; color:var(--muted); line-height:1.65; }
+.hero-shell-body { display:grid; grid-template-columns:1.05fr .95fr; gap:18px; align-items:start; }
+.hero-summary { display:flex; flex-direction:column; gap:14px; }
+.hero-summary-text { font-size:14px; color:var(--muted); line-height:1.7; }
+.hero-actions-compact { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+.hero-actions-compact .mini-link { background:var(--panel); }
+.hero-context-panel { padding:16px; border:1px solid var(--line); border-radius:16px; background:var(--panel2); }
+.hero-context-grid { display:grid; gap:10px; }
+.hero-context-panel .surface-note { background:var(--panel); }
+.feature-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:20px; }
+.hero-structure-note,
+.hero-shell-body,
+.feature-grid { display:none; }
+.feature-card { background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:18px; display:flex; flex-direction:column; gap:10px; transition:var(--transition); }
+.feature-card:hover { border-color:var(--primary-border); transform:translateY(-2px); box-shadow:var(--shadow-md); }
+.feature-card h3 { font-size:15px; font-weight:700; }
+.feature-card p { font-size:13px; color:var(--muted); }
+.route-list { display:flex; flex-direction:column; gap:10px; }
+.route-item { display:flex; gap:12px; align-items:flex-start; padding:12px 0; border-bottom:1px solid var(--line); }
+.route-item:last-child { border-bottom:none; }
+.route-index { width:28px; height:28px; border-radius:10px; background:var(--primary-light); color:var(--primary); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0; }
+.mini-link { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 14px; border:1px solid var(--line); border-radius:12px; background:var(--panel2); }
+.quick-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 28px; }
+.quick-action {
+  display: flex; align-items: center; gap: 14px;
+  padding: 18px 20px; background: var(--panel);
+  border: 1px solid var(--line); border-radius: var(--radius);
+  box-shadow: var(--shadow); cursor: pointer; transition: var(--transition);
+}
+.quick-action:hover { border-color: var(--primary-border); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.quick-action-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+.quick-action h4 { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+.quick-action p { font-size: 12px; color: var(--muted); }
+.activity-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.activity-item:last-child { border-bottom: none; }
+.activity-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+@media (max-width: 1200px) {
+  .hero-shell-body, .hero-actions-compact, .feature-grid { grid-template-columns:1fr; }
+  .hero-shell-header { flex-direction:column; }
+  .hero-structure-note { max-width:none; width:100%; }
+}
+</style>
+</head>
+<body>
+<div class="app-layout">
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">SD</div>
+    <div class="brand-text"><h1>SoulDoc</h1><p>AI 原生知识工作台</p></div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">主导航</div>
+    <a class="nav-item active" href="index.html"><span class="nav-icon">🏠</span>首页</a>
+    <a class="nav-item" href="spaces.html"><span class="nav-icon">🗂️</span>知识空间</a>
+    <a class="nav-item" href="search.html"><span class="nav-icon">🔍</span>搜索</a>
+    <a class="nav-item" href="notifications.html"><span class="nav-icon">🔔</span>通知中心 <span class="nav-badge">5</span></a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">当前空间 · SoulDoc Demo</div>
+    <a class="nav-item" href="space.html"><span class="nav-icon">📌</span>空间概览</a>
+    <a class="nav-item" href="docs.html"><span class="nav-icon">📚</span>文档中心</a>
+    <a class="nav-item" href="editor.html"><span class="nav-icon">✏️</span>编辑器</a>
+    <a class="nav-item" href="change-request.html"><span class="nav-icon">🧾</span>变更请求</a>
+    <a class="nav-item" href="members.html"><span class="nav-icon">👥</span>成员权限</a>
+    <a class="nav-item" href="tags.html"><span class="nav-icon">🏷️</span>标签管理</a>
+    <a class="nav-item" href="files.html"><span class="nav-icon">📁</span>文件管理</a>
+    <a class="nav-item" href="seo.html"><span class="nav-icon">🌐</span>发布 & SEO</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">智能与语言</div>
+    <a class="nav-item" href="language.html"><span class="nav-icon">🌍</span>语言版本</a>
+    <a class="nav-item" href="ai-tasks.html"><span class="nav-icon">✨</span>AI 任务中心</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">平台</div>
+    <a class="nav-item" href="developer.html"><span class="nav-icon">🛠️</span>开发者平台</a>
+    <a class="nav-item" href="settings.html"><span class="nav-icon">⚙️</span>系统设置</a>
+  </div>
+  <div class="sidebar-bottom">
+    <a class="nav-item" href="profile.html"><div class="avatar avatar-sm" style="background:var(--gradient)">A</div><span class="identity-inline">Admin <span class="identity-badge human">人类</span></span></a>
+  </div>
+</aside>
+
+<!-- Main -->
+<div class="main-area">
+  <div class="topbar">
+    <div class="topbar-search">
+      <span class="topbar-search-icon">🔍</span>
+      <input type="text" placeholder="搜索文档、空间、标签... (⌘K)" onclick="location.href='search.html'">
+    </div>
+    <div class="topbar-right">
+      <span class="ai-badge">AI 已就绪</span>
+      <a class="btn btn-sm" href="git-sync.html">连接 GitHub</a>
+      <button class="btn btn-sm" onclick="openModal('invite-modal')">邀请成员</button>
+      <button class="btn btn-sm btn-primary" onclick="openModal('new-doc-modal')">＋ 新建文档</button>
+      <div class="avatar" style="cursor:pointer" onclick="location.href='profile.html'">A</div>
+    </div>
+  </div>
+
+  <div class="page-content">
+    <div class="card hero-shell">
+      <div class="hero-shell-header">
+        <div class="page-header" style="padding:0;border:none;margin-bottom:0">
+          <div>
+            <h1>SoulDoc 工作台</h1>
+            <p>围绕 Space、模板、审批、AI、发布站点和 SEO 的统一知识工作台。</p>
+          </div>
+        </div>
+        <div class="hero-structure-note">
+          当前结构：Scope 下管理 Space / Collection / Site。Document 始终属于 Space；Collection 只是可选分组；发布时由 Site 通过站点分区链接公共 Space。
+        </div>
+      </div>
+      <div class="hero-shell-body">
+        <div class="hero-summary">
+          <div class="hero-summary-text">
+            首页只保留主路径：先进入知识空间和文档中心处理内容，再按需进入发布链。模板、GitHub 同步和 AI 任务不在首屏堆叠展示，需要时再进入对应页面。
+          </div>
+          <div class="hero-actions-compact">
+            <a class="mini-link" href="spaces.html"><span>知识空间</span><span>→</span></a>
+            <a class="mini-link" href="docs.html"><span>文档中心</span><span>→</span></a>
+            <a class="mini-link" href="seo.html"><span>发布链</span><span>→</span></a>
+          </div>
+        </div>
+        <div class="hero-context-panel">
+          <div class="card-header" style="padding:0 0 12px;border-bottom:none"><h3>当前上下文</h3></div>
+          <div class="hero-context-grid">
+            <div class="surface-note"><strong>Scope</strong><div style="font-size:12px;color:var(--muted)">SoulDoc 团队，负责成员、集合、Space、模板、审批流和发布策略。</div></div>
+            <div class="surface-note"><strong>当前 Space</strong><div style="font-size:12px;color:var(--muted)">SoulDoc Demo，承载文档树、版本、CR、AI 任务与语言版本。</div></div>
+            <div class="surface-note"><strong>当前 Site</strong><div style="font-size:12px;color:var(--muted)">docs.souldoc.io，通过站点分区链接公共 Space，并输出公开阅读页与 SEO。</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-4" style="margin-bottom:20px">
+      <div class="metric-card"><div class="metric-icon" style="background:#eef2ff">🗂️</div><div class="metric-value">12</div><div class="metric-label">空间总数</div><div class="metric-change up">↑ 2 本月新增</div></div>
+      <div class="metric-card"><div class="metric-icon" style="background:#d1fae5">📄</div><div class="metric-value">248</div><div class="metric-label">文档总数</div><div class="metric-change up">↑ 18 本周更新</div></div>
+      <div class="metric-card"><div class="metric-icon" style="background:#ede9fe">🤖</div><div class="metric-value">6</div><div class="metric-label">AI 用户</div><div class="metric-change">与 28 名人类共用角色体系</div></div>
+      <div class="metric-card"><div class="metric-icon" style="background:#fef3c7">🔀</div><div class="metric-value">4</div><div class="metric-label">GitHub 仓库</div><div class="metric-change">1 个冲突待处理</div></div>
+    </div>
+
+    <div class="feature-grid">
+      <a class="feature-card" href="spaces.html">
+        <h3>知识空间</h3>
+        <p>管理个人 / 组织 Space，明确公共 / 私有策略、成员范围和文档边界。</p>
+      </a>
+      <a class="feature-card" href="templates.html">
+        <h3>模板中心</h3>
+        <p>管理 PRD、API、FAQ、帮助中心等模板，支持制作、切换、升级与回滚。</p>
+      </a>
+      <a class="feature-card" href="docs.html">
+        <h3>文档中心</h3>
+        <p>在集合与 Space 中管理文档树，支持从空白、模板或对话快速起稿。</p>
+      </a>
+      <a class="feature-card" href="ai-tasks.html">
+        <h3>AI 任务中心</h3>
+        <p>承载摘要、翻译、SEO 检查、对话转文档等异步任务与审计回执。</p>
+      </a>
+      <a class="feature-card" href="language.html">
+        <h3>语言版本</h3>
+        <p>用 `doc_group` 管多语言，不复制整套 Space；支持回退语言和跨语言检索。</p>
+      </a>
+      <a class="feature-card" href="seo.html">
+        <h3>发布 & SEO</h3>
+        <p>管理发布站点、站点分区、公开阅读页、SEO 片段和发布目标。</p>
+      </a>
+    </div>
+
+    <div class="grid-2" style="gap:20px;margin-bottom:20px">
+      <div class="card">
+        <div class="card-header"><h3>核心操作路径</h3></div>
+        <div class="route-list">
+          <div class="route-item"><div class="route-index">1</div><div><strong>先选 Scope</strong><div class="text-sm text-muted">个人工作区适合沉淀与试写，组织适合协作、审批、发布与 GitHub 同步。</div></div></div>
+          <div class="route-item"><div class="route-index">2</div><div><strong>先建 Space，必要时放入 Collection</strong><div class="text-sm text-muted">Space 是真正的内容主容器；Collection 只是 Scope 下的可选管理分组。</div></div></div>
+          <div class="route-item"><div class="route-index">3</div><div><strong>用模板或对话起稿</strong><div class="text-sm text-muted">模板、空白文档、对话转文档都进入同一编辑链，而不是平行入口。</div></div></div>
+          <div class="route-item"><div class="route-index">4</div><div><strong>进入版本与审批</strong><div class="text-sm text-muted">版本、CR、AI 任务、翻译复审和回收站进入统一治理链。</div></div></div>
+          <div class="route-item"><div class="route-index">5</div><div><strong>再发布到 Site</strong><div class="text-sm text-muted">Site 不拥有内容，只链接公共 Space，并通过站点分区输出公开阅读体验。</div></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>待处理事项</h3><a href="notifications.html" class="text-sm text-primary">查看全部</a></div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <a class="mini-link" href="change-request.html"><span>3 个变更请求待审核</span><span class="badge badge-warning">审核</span></a>
+          <a class="mini-link" href="language.html"><span>2 个语言版本待复审</span><span class="badge badge-primary">语言</span></a>
+          <a class="mini-link" href="git-sync.html"><span>1 个 GitHub 同步冲突待处理</span><span class="badge badge-danger">冲突</span></a>
+          <a class="mini-link" href="ai-tasks.html"><span>6 个 AI 任务正在运行</span><span class="badge badge-purple">AI</span></a>
+          <a class="mini-link" href="seo.html"><span>公开站点 SEO 检查待通过</span><span class="badge badge-success">发布</span></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="gap:20px;margin-bottom:20px">
+      <div class="card">
+        <div class="card-header"><h3>内容结构（内部）</h3></div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="surface-note"><strong>Scope</strong><div style="font-size:12px;color:var(--muted)">个人工作区或组织，是所有权、成员、模板和审批策略的边界。</div></div>
+          <div class="surface-note"><strong>Collection</strong><div style="font-size:12px;color:var(--muted)">内容集合，用来组织多个 Space，本身不直接承载页面正文或发布导航。</div></div>
+          <div class="surface-note"><strong>Space</strong><div style="font-size:12px;color:var(--muted)">真正的内容容器，承载文档树、版本、CR、标签、文件、权限和 AI 任务。</div></div>
+          <div class="surface-note"><strong>Document</strong><div style="font-size:12px;color:var(--muted)">支持目录树、块级编辑、多语言文档组、回收站和恢复。</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>发布结构（外部）</h3></div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="surface-note"><strong>Site</strong><div style="font-size:12px;color:var(--muted)">发布站点负责域名、品牌、SEO、导航和公开访问入口。</div></div>
+          <div class="surface-note"><strong>Section</strong><div style="font-size:12px;color:var(--muted)">站点分区，用于把已发布的 Space 按产品文档、帮助中心、开放平台组织起来。</div></div>
+          <div class="surface-note"><strong>Linked Space</strong><div style="font-size:12px;color:var(--muted)">发布时把公共 Space 链接到 Site，而不是把 Site 放到内容链最上层。</div></div>
+          <div class="surface-note"><strong>Public Reader</strong><div style="font-size:12px;color:var(--muted)">公开用户看到的是 Site 下的已发布 Space 和文档，不会进入内部协作态。</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="gap:20px;margin-bottom:20px">
+      <div class="card">
+        <div class="card-header"><h3>单人如何开始</h3></div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="surface-note">先在个人工作区建立 2 到 3 个 Space：研究沉淀、写作草稿、公开文档。</div>
+          <div class="surface-note">用个人模板起稿，成熟后再迁移到组织或挂到发布站点。</div>
+          <div class="surface-note">如果需要公开发布，可以保留单人组织，把 Site、GitHub 同步和 SEO 集中到这个组织里。</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>组织如何协作</h3></div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="surface-note">必要时按业务线建 Collection，例如产品文档、帮助中心、客户交付，再把多个 Space 归入集合统一管理。</div>
+          <div class="surface-note">把模板、审批、GitHub 仓库、SEO 规则和 AI 工具策略都配置到组织级，再下沉到 Space。</div>
+          <div class="surface-note">公共 Space 负责对外发布，私有 Space 负责内部沉淀和评审，不把两种状态混在一起。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-header"><h3>SoulDoc 的深挖点</h3></div>
+      <div class="grid-2" style="gap:12px">
+        <div class="surface-note">AI 是独立用户类型，与人类共享角色和权限，不再被当成外挂助手。</div>
+        <div class="surface-note">Rust + SurrealDB 作为主栈，把关系、文档、图结构、向量与全文检索压进同一套底座。</div>
+        <div class="surface-note">审批、流程、回收站、恢复、版本、SEO 与 GitHub 同步是同一条治理链，不是散落的小功能。</div>
+        <div class="surface-note">模板、语言版本、发布站点、GitHub 仓库都能作为一等对象进入版本、审计和同步链。</div>
+      </div>
+    </div>
+
+    <div class="home-legacy">
+    <!-- Hero -->
+    <div style="margin-bottom:28px">
+      <h1 style="font-size:28px;font-weight:700;letter-spacing:-.5px">👋 欢迎回来，<span class="identity-inline">Admin <span class="identity-badge human">人类</span></span></h1>
+      <p style="color:var(--muted);margin-top:6px">今天是 2026年4月16日 · SoulDoc AI 原生知识工作台</p>
+    </div>
+
+    <div class="grid-2" style="gap:20px;margin-bottom:20px">
+      <div class="card">
+        <div class="card-header"><h3>当前工作区</h3><a href="organization.html" class="text-sm text-primary">查看组织</a></div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="surface-note"><strong>SoulDoc 团队</strong> <span class="scope-chip org" style="margin-left:8px">组织</span><div style="font-size:12px;color:var(--muted);margin-top:6px">当前默认协作载体，承载成员目录、发布站点、空间分组、组织空间与统一治理策略。</div></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <span class="badge badge-primary">16 组织成员</span>
+            <span class="badge badge-success">3 个发布站点</span>
+            <span class="badge badge-info">12 个组织空间</span>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>个人工作区</h3><a href="profile.html" class="text-sm text-primary">查看个人</a></div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="surface-note"><strong>Admin</strong> <span class="scope-chip personal" style="margin-left:8px">个人</span><div style="font-size:12px;color:var(--muted);margin-top:6px">用于保存私有草稿、灵感沉淀、偏好设置和未进入组织治理链的个人文档。</div></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <span class="badge badge-gray">2 个个人空间</span>
+            <span class="badge badge-warning">14 份私有草稿</span>
+            <span class="badge badge-teal">可迁移入组织</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <div class="quick-action" onclick="openModal('new-doc-modal')">
+        <div class="quick-action-icon" style="background:var(--primary-light)">📝</div>
+        <div><h4>新建文档</h4><p>在任意空间创建新的知识文档</p></div>
+      </div>
+      <div class="quick-action" onclick="location.href='change-request.html'">
+        <div class="quick-action-icon" style="background:var(--warning-light)">🔀</div>
+        <div><h4>变更请求</h4><p>查看 3 个待审核的内容变更</p></div>
+      </div>
+      <div class="quick-action" onclick="location.href='language.html'">
+        <div class="quick-action-icon" style="background:var(--purple-light)">✨</div>
+        <div><h4>语言版本</h4><p>查看同一文档组的多语言版本与对照阅读</p></div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="gap:20px;margin-bottom:20px">
+      <!-- Stats -->
+      <div class="grid-4" style="grid-template-columns:repeat(2,1fr);gap:12px">
+        <div class="metric-card">
+          <div class="metric-icon" style="background:#eef2ff">📄</div>
+          <div class="metric-value">248</div>
+          <div class="metric-label">总文档数</div>
+          <div class="metric-change up">↑ 12 本周新增</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-icon" style="background:#d1fae5">🗂️</div>
+          <div class="metric-value">7</div>
+          <div class="metric-label">知识空间</div>
+          <div class="metric-change up">↑ 1 本月新增</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-icon" style="background:#ede9fe">👥</div>
+          <div class="metric-value">34</div>
+          <div class="metric-label">协作成员</div>
+          <div class="metric-change up">↑ 3 本月新增</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-icon" style="background:#fef3c7">⚡</div>
+          <div class="metric-value">18</div>
+          <div class="metric-label">AI 任务</div>
+          <div class="metric-change">6 进行中</div>
+        </div>
+      </div>
+
+      <!-- Recent Activity -->
+      <div class="card">
+        <div class="card-header"><h3>最近活动</h3><a href="notifications.html" class="text-sm text-primary">查看全部</a></div>
+        <div>
+          <div class="activity-item">
+            <div class="activity-icon" style="background:#eef2ff">✏️</div>
+            <div style="flex:1"><div class="text-sm font-600">产品需求文档 v2.0</div><div class="text-xs text-muted"><span class="identity-inline">张三 <span class="identity-badge human">人类</span></span> 编辑了文档 · 8分钟前</div></div>
+            <a href="editor.html" class="badge badge-primary">查看</a>
+          </div>
+          <div class="activity-item">
+            <div class="activity-icon" style="background:#d1fae5">✅</div>
+            <div style="flex:1"><div class="text-sm font-600">API接口文档 变更请求已合并</div><div class="text-xs text-muted"><span class="identity-inline">李四 <span class="identity-badge human">人类</span></span> 合并了变更 · 25分钟前</div></div>
+            <a href="change-request.html" class="badge badge-success">查看</a>
+          </div>
+          <div class="activity-item">
+            <div class="activity-icon" style="background:#ede9fe">✨</div>
+            <div style="flex:1"><div class="text-sm font-600">Aurora 生成了《架构设计》英文初稿</div><div class="text-xs text-muted"><span class="identity-inline">Aurora <span class="identity-badge ai">AI</span></span> · 40分钟前</div></div>
+            <a href="ai-tasks.html" class="badge badge-purple">结果</a>
+          </div>
+          <div class="activity-item">
+            <div class="activity-icon" style="background:#fef3c7">👤</div>
+            <div style="flex:1"><div class="text-sm font-600"><span class="identity-inline">王五 <span class="identity-badge human">人类</span></span> 加入了 SoulDoc Demo</div><div class="text-xs text-muted">邀请了成员 · 1小时前</div></div>
+            <a href="members.html" class="badge badge-warning">成员</a>
+          </div>
+          <div class="activity-item">
+            <div class="activity-icon" style="background:#ccfbf1">🌐</div>
+            <div style="flex:1"><div class="text-sm font-600">帮助文档已发布到发布站点</div><div class="text-xs text-muted"><span class="identity-inline">Admin <span class="identity-badge human">人类</span></span> · 2小时前</div></div>
+            <a href="seo.html" class="badge badge-teal">发布</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="gap:20px;margin-bottom:20px">
+      <!-- Recent Docs -->
+      <div class="card">
+        <div class="card-header"><h3>📄 最近访问文档</h3><button class="btn btn-sm" onclick="location.href='docs.html'">文档中心</button></div>
+        <div>
+          <div class="list-item" onclick="location.href='editor.html'" style="cursor:pointer">
+            <div style="font-size:22px">📋</div>
+            <div class="list-item-main"><div class="list-item-title">产品需求文档 PRD v2.0</div><div class="list-item-sub">SoulDoc Demo / 产品设计 · 8分钟前</div></div>
+            <div class="list-item-right"><span class="badge badge-warning">草稿</span></div>
+          </div>
+          <div class="list-item" onclick="location.href='docs.html'" style="cursor:pointer">
+            <div style="font-size:22px">🔌</div>
+            <div class="list-item-main"><div class="list-item-title">API 接口设计文档</div><div class="list-item-sub">SoulDoc Demo / 技术文档 · 25分钟前</div></div>
+            <div class="list-item-right"><span class="badge badge-success">已发布</span></div>
+          </div>
+          <div class="list-item" onclick="location.href='docs.html'" style="cursor:pointer">
+            <div style="font-size:22px">🏗️</div>
+            <div class="list-item-main"><div class="list-item-title">系统架构设计</div><div class="list-item-sub">SoulDoc Demo / 技术文档 · 1小时前</div></div>
+            <div class="list-item-right"><span class="badge badge-primary">审核中</span></div>
+          </div>
+          <div class="list-item" onclick="location.href='docs.html'" style="cursor:pointer">
+            <div style="font-size:22px">📖</div>
+            <div class="list-item-main"><div class="list-item-title">新员工入职手册</div><div class="list-item-sub">HR空间 / 规章制度 · 2小时前</div></div>
+            <div class="list-item-right"><span class="badge badge-success">已发布</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Spaces Overview -->
+      <div class="card">
+        <div class="card-header"><h3>🗂️ 知识空间</h3><button class="btn btn-sm" onclick="location.href='spaces.html'">全部空间</button></div>
+        <div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+            <span class="scope-chip org">组织空间 3</span>
+            <span class="scope-chip personal">个人空间 2</span>
+          </div>
+          <div class="list-item" onclick="location.href='space.html'" style="cursor:pointer">
+            <div style="font-size:20px">📘</div>
+            <div class="list-item-main"><div class="list-item-title">SoulDoc Demo</div><div class="list-item-sub">组织空间 · 248文档 · 12成员 · 公开</div></div>
+            <div class="list-item-right"><span class="dot dot-green"></span></div>
+          </div>
+          <div class="list-item" style="cursor:pointer" onclick="location.href='spaces.html'">
+            <div style="font-size:20px">🔬</div>
+            <div class="list-item-main"><div class="list-item-title">技术研发文档</div><div class="list-item-sub">组织空间 · 86文档 · 8成员 · 私有</div></div>
+            <div class="list-item-right"><span class="dot dot-blue"></span></div>
+          </div>
+          <div class="list-item" style="cursor:pointer" onclick="location.href='spaces.html'">
+            <div style="font-size:20px">🤝</div>
+            <div class="list-item-main"><div class="list-item-title">客户交付文档</div><div class="list-item-sub">组织空间 · 32文档 · 5成员 · 公共</div></div>
+            <div class="list-item-right"><span class="dot dot-yellow"></span></div>
+          </div>
+          <div class="list-item" style="cursor:pointer;border:2px dashed var(--line);background:var(--panel3)" onclick="openModal('new-space-modal')">
+            <div style="font-size:20px">＋</div>
+            <div class="list-item-main"><div class="list-item-title" style="color:var(--muted)">创建新空间</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="gap:20px;margin-bottom:20px">
+      <div class="card">
+        <div class="card-header"><h3>🏛️ 平台骨架入口</h3><button class="btn btn-sm" onclick="location.href='workspace.html'">查看架构</button></div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <a class="list-item" href="organization.html">
+            <div class="list-item-main">
+              <div class="list-item-title">组织主页</div>
+              <div class="list-item-sub">管理组织成员、组织空间、发布站点以及个人/组织的边界</div>
+            </div>
+          </a>
+          <a class="list-item" href="workspace.html">
+            <div class="list-item-main">
+              <div class="list-item-title">发布站点</div>
+              <div class="list-item-sub">补回 Organization / 发布站点 / 空间分组 / Space / Document 这条平台骨架</div>
+            </div>
+          </a>
+          <a class="list-item" href="public-doc.html">
+            <div class="list-item-main">
+              <div class="list-item-title">公开阅读页</div>
+              <div class="list-item-sub">查看发布结果态，不再把外部阅读体验混在后台里</div>
+            </div>
+          </a>
+          <a class="list-item" href="seo.html">
+            <div class="list-item-main">
+              <div class="list-item-title">发布链路</div>
+              <div class="list-item-sub">把发布站点配置、SEO、语言版本和公开访问策略接在一起</div>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>🧩 V5 新增能力</h3><button class="btn btn-sm" onclick="location.href='ai-tools.html'">AI 工具配置</button></div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <a class="list-item" href="ai-tools.html">
+            <div class="list-item-main">
+              <div class="list-item-title">AI 工具分层</div>
+              <div class="list-item-sub">从扁平工具切到 6 个能力族，强化 Preview before Commit</div>
+            </div>
+          </a>
+          <a class="list-item" href="git-sync.html">
+            <div class="list-item-main">
+              <div class="list-item-title">Git Sync</div>
+              <div class="list-item-sub">把 Docs-as-Code、预览分支、CR 和发布统一到一条链路</div>
+            </div>
+          </a>
+          <a class="list-item" href="developer.html">
+            <div class="list-item-main">
+              <div class="list-item-title">开放平台</div>
+              <div class="list-item-sub">REST / Async Task / Webhook / Connector 的边界更清晰</div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="gap:20px;margin-bottom:20px">
+      <div class="card">
+        <div class="card-header"><h3>💬 对话到文档工作流</h3><button class="btn btn-sm" onclick="location.href='editor.html'">进入编辑器</button></div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="surface-note"><strong>1. 意图表达</strong><div style="font-size:12px;color:var(--muted)">人类或 AI 先给出原始对话、会议记录、需求片段或零散想法。</div></div>
+          <div class="surface-note"><strong>2. 工作流预览</strong><div style="font-size:12px;color:var(--muted)">系统先展示将生成哪些章节、标签、语言版本和待办，而不是直接静默写入。</div></div>
+          <div class="surface-note"><strong>3. 草稿生成</strong><div style="font-size:12px;color:var(--muted)">进入文档草稿、版本快照与变更请求链路，保持所有生成动作可审计、可回滚。</div></div>
+          <div class="surface-note"><strong>4. 治理发布</strong><div style="font-size:12px;color:var(--muted)">审核通过后再进入发布、SEO、多语言与公开阅读页，而不是把生成和发布混在一起。</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>🛡️ 治理与恢复信号</h3><button class="btn btn-sm" onclick="location.href='settings.html'">查看设置</button></div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="surface-note">所有人类用户与 AI 用户共享同一套角色与权限模型，但动作会带上类型标识并进入审计链。</div>
+          <div class="surface-note">文档删除默认进入回收站，保留 <strong>30 天</strong> 恢复窗口；恢复会生成新版本，不覆盖已有历史。</div>
+          <div class="surface-note">多语言以 `doc_group_id` 关联，阅读端遵循默认语言与回退语言策略，搜索端允许跨语言召回。</div>
+          <div class="surface-note">发布前统一经过 SEO、语言完整度、公开/私有可见性和 Git Sync 状态检查。</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Summary Panel -->
+    <div class="highlight-block ai-highlight" style="margin-bottom:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:22px">✨</span>
+          <strong style="font-size:15px">语言与智能洞察</strong>
+        </div>
+        <a href="language.html" style="color:#818cf8;font-size:13px">打开语言版本 →</a>
+      </div>
+      <p style="opacity:.85;font-size:13.5px;line-height:1.7;margin-bottom:14px">
+        本周 <strong>技术文档</strong> 更新最活跃（+18篇），其中 `zh-CN` 主语言有 3 次变更触发了 `en-US / ja-JP` 待复审。当前公共空间中仍有 2 篇文档缺少英文版本，建议优先补齐。
+      </p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="ai-tool-btn" style="width:auto;padding:8px 16px" onclick="location.href='ai-tasks.html'">⚡ 查看AI任务</button>
+        <button class="ai-tool-btn" style="width:auto;padding:8px 16px" onclick="location.href='language.html'">🌍 查看语言版本</button>
+        <button class="ai-tool-btn" style="width:auto;padding:8px 16px" onclick="showToast('周报任务已加入 AI 任务中心','success')">📊 生成周报</button>
+      </div>
+    </div>
+
+    <!-- Pending Change Requests -->
+    <div class="card">
+      <div class="card-header">
+        <h3>🔀 待处理变更请求</h3>
+        <button class="btn btn-sm" onclick="location.href='change-request.html'">全部变更</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>变更标题</th><th>空间</th><th>提交人</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>更新 API 认证章节</strong></td>
+              <td>SoulDoc Demo</td>
+              <td><div class="flex items-center gap-8"><div class="avatar avatar-sm">Z</div><span class="identity-inline">张三 <span class="identity-badge human">人类</span></span></div></td>
+              <td><span class="badge badge-warning">待审核</span></td>
+              <td><button class="btn btn-sm" onclick="location.href='change-request.html'">审核</button></td>
+            </tr>
+            <tr>
+              <td><strong>新增数据库表说明</strong></td>
+              <td>技术研发</td>
+              <td><div class="flex items-center gap-8"><div class="avatar avatar-sm" style="background:linear-gradient(135deg,#10b981,#059669)">L</div><span class="identity-inline">李四 <span class="identity-badge human">人类</span></span></div></td>
+              <td><span class="badge badge-primary">审核中</span></td>
+              <td><button class="btn btn-sm" onclick="location.href='change-request.html'">查看</button></td>
+            </tr>
+            <tr>
+              <td><strong>修订安全设计章节</strong></td>
+              <td>SoulDoc Demo</td>
+              <td><div class="flex items-center gap-8"><div class="avatar avatar-sm" style="background:linear-gradient(135deg,#f59e0b,#ef4444)">W</div><span class="identity-inline">王五 <span class="identity-badge human">人类</span></span></div></td>
+              <td><span class="badge badge-danger">需修改</span></td>
+              <td><button class="btn btn-sm" onclick="location.href='change-request.html'">回复</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- New Doc Modal -->
+<div class="modal-overlay" id="new-doc-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>新建文档</h3>
+      <button class="btn-ghost btn-icon" onclick="closeModal('new-doc-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">文档标题 <span class="required">*</span></label><input class="input" placeholder="请输入文档标题"></div>
+      <div class="form-group"><label class="form-label">所属 Scope</label>
+        <select class="input select"><option>🏢 SoulDoc 团队</option><option>👤 个人工作区</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">所属集合 Collection（可选）</label>
+        <select class="input select"><option>不加入集合（顶层 Space）</option><option>产品文档</option><option>帮助中心</option><option>开放平台</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">所属空间</label>
+        <select class="input select"><option>SoulDoc Demo</option><option>技术研发文档</option><option>客户交付文档</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">文档类型</label>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+          <div style="border:2px solid var(--primary);border-radius:10px;padding:12px;text-align:center;cursor:pointer;background:var(--primary-light)">
+            <div style="font-size:22px;margin-bottom:6px">📄</div><div style="font-size:13px;font-weight:500;color:var(--primary)">普通文档</div>
+          </div>
+          <div style="border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center;cursor:pointer">
+            <div style="font-size:22px;margin-bottom:6px">📁</div><div style="font-size:13px;color:var(--muted)">目录文档</div>
+          </div>
+          <div style="border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center;cursor:pointer">
+            <div style="font-size:22px;margin-bottom:6px">🤖</div><div style="font-size:13px;color:var(--muted)">AI 生成草稿</div>
+          </div>
+        </div>
+      </div>
+      <div class="surface-note">需要标准结构时，先去 <a href="templates.html" style="color:var(--primary)">模板中心</a> 选择模板。</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('new-doc-modal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('new-doc-modal');location.href='editor.html'">创建并编辑</button>
+    </div>
+  </div>
+</div>
+
+<!-- Invite Modal -->
+<div class="modal-overlay" id="invite-modal">
+  <div class="modal">
+    <div class="modal-header"><h3>邀请成员</h3><button class="btn-ghost btn-icon" onclick="closeModal('invite-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">邮箱地址</label><input class="input" type="email" placeholder="user@example.com"></div>
+      <div class="form-group"><label class="form-label">加入组织</label><select class="input select"><option>SoulDoc 团队</option></select></div>
+      <div class="form-group"><label class="form-label">用户类型</label><select class="input select"><option>人类用户</option><option>AI 用户</option></select></div>
+      <div class="form-group"><label class="form-label">角色</label><select class="input select"><option>Editor — 可编辑文档</option><option>Member — 可查看与评论</option><option>Viewer — 只读</option></select></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('invite-modal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('invite-modal');showToast('邀请邮件已发送','success')">发送邀请</button>
+    </div>
+  </div>
+</div>
+
+<!-- New Space Modal -->
+<div class="modal-overlay" id="new-space-modal">
+  <div class="modal">
+    <div class="modal-header"><h3>创建知识空间</h3><button class="btn-ghost btn-icon" onclick="closeModal('new-space-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">空间名称 <span class="required">*</span></label><input class="input" placeholder="如：产品设计文档"></div>
+      <div class="form-group"><label class="form-label">URL Slug</label><input class="input" placeholder="product-design"></div>
+      <div class="form-group"><label class="form-label">简介</label><textarea class="input textarea" placeholder="描述这个空间的用途"></textarea></div>
+      <div class="form-group"><label class="form-label">归属载体</label><select class="input select"><option>🏢 SoulDoc 团队 — 组织空间</option><option>👤 个人工作区 — 个人空间</option></select></div>
+      <div class="form-group"><label class="form-label">归属集合 Collection（可选）</label><select class="input select"><option>不加入集合（顶层 Space）</option><option>产品文档</option><option>帮助中心</option><option>开放平台</option></select></div>
+      <div class="form-group"><label class="form-label">协作模式</label><select class="input select"><option>团队协作 · Team Space</option><option>个人主导 · Personal Space</option></select></div>
+      <div class="form-group"><label class="form-label">可见性</label>
+        <select class="input select"><option>🔒 私有 — 仅成员可访问</option><option>🌐 公共 — 所有人可访问</option></select>
+      </div>
+      <div class="surface-note">公共内容不会自动出现在发布站点；还需要在 Site 中把这个 Space 链接进去。</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('new-space-modal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('new-space-modal');location.href='space.html'">创建空间</button>
+    </div>
+  </div>
+</div>
+
+<script src="nav.js"></script>
+</body>
+</html>

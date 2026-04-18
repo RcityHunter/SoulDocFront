@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>公开文档 — SoulDoc</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.public-layout { display:grid; grid-template-columns:1fr 300px; gap:20px; }
+.doc-reader { background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:28px 32px; }
+.compare-view { display:none; margin-top:20px; }
+.compare-view.open { display:grid; }
+</style>
+</head>
+<body>
+<div style="min-height:100vh;background:var(--bg)">
+  <div class="topbar" style="position:static">
+    <div style="display:flex;align-items:center;gap:12px"><div class="brand-logo" style="width:34px;height:34px">SD</div><strong>SoulDoc Public</strong></div>
+    <div class="topbar-right">
+      <span class="badge badge-success">🌐 公共空间</span>
+      <span class="locale-chip active">zh-CN</span>
+      <span class="locale-chip">en-US</span>
+      <span class="locale-chip">ja-JP</span>
+      <button class="btn btn-sm" onclick="toggleCompare()">⇄ 对照模式</button>
+    </div>
+  </div>
+
+  <div class="page-content">
+    <div style="margin-bottom:20px">
+      <h1 style="font-size:28px;font-weight:700">产品需求文档 PRD v2.0</h1>
+      <p style="color:var(--muted);margin-top:6px">正常阅读态文档页。公共空间下，任何人都可以查看已发布语言版本；私有空间下，只有成员可访问。</p>
+    </div>
+
+    <div class="public-layout">
+      <div>
+        <div class="doc-reader">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+            <span class="badge badge-warning">已发布</span>
+            <span class="badge badge-primary">产品设计</span>
+            <span class="locale-chip active">当前语言：zh-CN</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;font-size:13px;color:var(--muted);padding-bottom:14px;border-bottom:1px solid var(--line);margin-bottom:20px">
+            <span>空间：SoulDoc Demo</span>
+            <span>最后更新：2026-04-16</span>
+            <span>校对：<span class="identity-inline">Admin <span class="identity-badge human">人类</span></span></span>
+          </div>
+
+          <h2 id="pub-position" style="font-size:20px;font-weight:700;margin-bottom:10px">1. 产品定位</h2>
+          <p style="line-height:1.8;color:var(--text2);margin-bottom:16px">SoulDoc 是一套面向 AI 原生内容生产、知识组织、团队协作与多角色共创的文档/知识系统。空间只有公共和私有两种可见性，同一篇文档以文档组关联多个语言版本。</p>
+          <div class="surface-note" style="margin-bottom:18px">阅读端推荐做法：用户只看当前语言的一份文档；需要时再切换语言或进入对照模式，而不是在正文中混排多种语言。</div>
+          <h2 id="pub-locale" style="font-size:20px;font-weight:700;margin-bottom:10px">2. 多语言呈现</h2>
+          <p style="line-height:1.8;color:var(--text2);margin-bottom:16px">当前页面展示的是 `zh-CN`。如果用户切到 `en-US`，URL 与版本状态会切换到该语言对应的发布版本；如果该语言尚未创建，则回退到默认语言并明确提示。</p>
+          <h2 id="pub-visibility" style="font-size:20px;font-weight:700;margin-bottom:10px">3. 公共 / 私有空间</h2>
+          <p style="line-height:1.8;color:var(--text2)">公共空间下，所有人都能阅读公开版本；私有空间下，未加入成员访问时会直接看到权限提示页，而不是空白或 404。</p>
+
+          <div class="compare-view compare-grid" id="compare-view">
+            <div class="surface-note">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><strong>简体中文</strong><span class="locale-chip active">zh-CN</span></div>
+              <p style="font-size:13.5px;color:var(--text2)">SoulDoc 是一套面向 AI 原生内容生产、知识组织、团队协作与多角色共创的文档系统。</p>
+            </div>
+            <div class="surface-note">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><strong>English</strong><span class="locale-chip">en-US</span></div>
+              <p style="font-size:13.5px;color:var(--text2)">SoulDoc is an AI-native documentation system for knowledge creation, organization, collaboration, and multilingual publishing.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="card">
+          <div class="card-header"><h3>语言版本</h3></div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div class="surface-note"><strong>zh-CN</strong><div style="font-size:12px;color:var(--muted)">默认语言 · 已发布</div></div>
+            <div class="surface-note"><strong>en-US</strong><div style="font-size:12px;color:var(--muted)">已发布 · 与源文同步</div></div>
+            <div class="surface-note"><strong>ja-JP</strong><div style="font-size:12px;color:var(--muted)">待复审</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h3>目录</h3></div>
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:13px">
+            <a href="#pub-position">1. 产品定位</a>
+            <a href="#pub-locale">2. 多语言呈现</a>
+            <a href="#pub-visibility">3. 公共 / 私有空间</a>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h3>发布站点导航</h3></div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div class="surface-note"><strong>站点分区 · 产品文档</strong><div style="font-size:12px;color:var(--muted)">快速开始 / API / 方案设计 / FAQ</div></div>
+            <div class="surface-note"><strong>站点分区 · 内容运营</strong><div style="font-size:12px;color:var(--muted)">SEO 规范 / 品牌语料 / 发布策略</div></div>
+            <div class="surface-note"><strong>站点分区 · 开放平台</strong><div style="font-size:12px;color:var(--muted)">REST API / Webhook / Connector / GitHub 同步</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h3>推荐问题</h3></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <span class="locale-chip active">发布前要检查什么？</span>
+            <span class="locale-chip">如何回滚版本？</span>
+            <span class="locale-chip">GitHub 同步怎么接？</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h3>私有空间访问效果</h3></div>
+          <div class="surface-note" style="font-size:13px;color:var(--muted)">
+            若当前空间被切为 <strong>私有</strong>，未登录或非成员用户会看到权限提示：
+            <div style="margin-top:8px;color:var(--text3)">“该空间为私有空间，仅成员可查看文档与语言版本。”</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h3>结果页回链</h3></div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <a class="list-item" href="workspace.html"><div class="list-item-main"><div class="list-item-title">发布站点</div><div class="list-item-sub">回看这个公开页挂在哪个发布站点 / 站点分区 / 已链接 Space 下</div></div></a>
+            <a class="list-item" href="seo.html"><div class="list-item-main"><div class="list-item-title">发布 & SEO</div><div class="list-item-sub">查看发布站点配置、SEO 与发布历史</div></div></a>
+            <a class="list-item" href="git-sync.html"><div class="list-item-main"><div class="list-item-title">GitHub 同步</div><div class="list-item-sub">查看预览分支与仓库同步如何影响公开结果态</div></div></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleCompare() {
+  document.getElementById('compare-view').classList.toggle('open');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+[application]
+name = "SoulDoc Frontend"
+default_platform = "web"
+out_dir = "dist"
+
+[web.app]
+title = "SoulDoc Frontend"
+
+[bundle]
+identifier = "io.souldoc.frontend"

@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>标签管理 — SoulDoc</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.tags-layout { display:grid; grid-template-columns:1fr 320px; gap:24px; padding:24px; }
+.tag-cloud-section { background:var(--panel); border-radius:var(--radius); border:1px solid var(--border); padding:24px; margin-bottom:20px; }
+.tag-cloud-title { font-size:15px; font-weight:700; color:var(--text); margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+.tag-cloud { display:flex; flex-wrap:wrap; gap:10px; align-items:flex-start; }
+.tag-bubble { display:inline-flex; align-items:center; gap:6px; min-height:36px; padding:8px 14px; border-radius:18px; font-size:13px; font-weight:600; line-height:1; white-space:nowrap; cursor:pointer; border:2px solid transparent; transition:all .15s; }
+.tag-bubble:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,.1); }
+.tag-bubble.selected { border-color:var(--primary); }
+.tag-bubble .tb-count { font-size:11px; font-weight:600; opacity:.72; }
+.tag-bubble.xs,
+.tag-bubble.sm,
+.tag-bubble.md,
+.tag-bubble.lg,
+.tag-bubble.xl { font-size:13px; padding:8px 14px; }
+.tag-table-section { background:var(--panel); border-radius:var(--radius); border:1px solid var(--border); overflow:hidden; }
+.tag-table-header { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; }
+.tag-table-header h4 { font-size:14px; font-weight:700; color:var(--text); flex:1; }
+.tag-row { display:grid; grid-template-columns:auto 1fr auto auto auto auto; gap:12px; align-items:center; padding:12px 20px; border-bottom:1px solid var(--border); transition:background .15s; }
+.tag-row:hover { background:var(--bg); }
+.tag-row:last-child { border-bottom:none; }
+.tag-color-dot { width:12px; height:12px; border-radius:50%; flex-shrink:0; }
+.tag-name-cell { display:flex; align-items:center; gap:8px; }
+.tag-label-preview { display:inline-flex; align-items:center; gap:6px; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600; }
+.tag-actions-cell { display:flex; gap:4px; opacity:0; transition:opacity .15s; }
+.tag-row:hover .tag-actions-cell { opacity:1; }
+.tag-count-badge { font-size:12px; color:var(--muted); background:var(--bg); padding:2px 8px; border-radius:8px; font-weight:600; }
+.stats-sidebar { display:flex; flex-direction:column; gap:16px; }
+.stat-card-small { background:var(--panel); border-radius:var(--radius); border:1px solid var(--border); padding:16px; }
+.stat-card-small h4 { font-size:13px; font-weight:700; color:var(--text); margin-bottom:12px; }
+.tag-stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.mini-stat { text-align:center; }
+.mini-stat .ms-num { font-size:22px; font-weight:800; color:var(--primary); }
+.mini-stat .ms-label { font-size:11px; color:var(--muted); }
+.popular-tag-item { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--border); }
+.popular-tag-item:last-child { border-bottom:none; }
+.pti-rank { width:20px; height:20px; border-radius:50%; background:var(--bg); font-size:11px; font-weight:700; color:var(--muted); display:flex; align-items:center; justify-content:center; }
+.pti-rank.gold { background:#fef3c7; color:#d97706; }
+.pti-rank.silver { background:#f1f5f9; color:#64748b; }
+.pti-rank.bronze { background:#fef2f2; color:#d97706; }
+.pti-info { flex:1; }
+.pti-info .pti-name { font-size:12px; font-weight:600; color:var(--text); }
+.pti-info .pti-count { font-size:11px; color:var(--muted); }
+.pti-bar { width:60px; height:4px; background:#e5e7eb; border-radius:2px; overflow:hidden; }
+.pti-fill { height:100%; border-radius:2px; background:var(--gradient); }
+.search-filter-row { display:flex; gap:10px; padding:14px 20px; background:var(--bg); border-bottom:1px solid var(--border); }
+</style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">SD</div>
+    <div class="brand-text"><h1>SoulDoc</h1><p>AI 原生知识工作台</p></div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">主导航</div>
+    <a class="nav-item" href="index.html"><span class="nav-icon">🏠</span>首页</a>
+    <a class="nav-item" href="spaces.html"><span class="nav-icon">🗂️</span>知识空间</a>
+    <a class="nav-item" href="search.html"><span class="nav-icon">🔍</span>搜索</a>
+    <a class="nav-item" href="notifications.html"><span class="nav-icon">🔔</span>通知中心 <span class="nav-badge">5</span></a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">当前空间 · SoulDoc Demo</div>
+    <a class="nav-item" href="space.html"><span class="nav-icon">📌</span>空间概览</a>
+    <a class="nav-item" href="docs.html"><span class="nav-icon">📚</span>文档中心</a>
+    <a class="nav-item" href="editor.html"><span class="nav-icon">✏️</span>编辑器</a>
+    <a class="nav-item" href="change-request.html"><span class="nav-icon">🧾</span>变更请求</a>
+    <a class="nav-item" href="members.html"><span class="nav-icon">👥</span>成员权限</a>
+    <a class="nav-item active" href="tags.html"><span class="nav-icon">🏷️</span>标签管理</a>
+    <a class="nav-item" href="files.html"><span class="nav-icon">📁</span>文件管理</a>
+    <a class="nav-item" href="seo.html"><span class="nav-icon">🌐</span>发布 & SEO</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">智能与语言</div>
+    <a class="nav-item" href="language.html"><span class="nav-icon">🌍</span>语言版本</a>
+    <a class="nav-item" href="ai-tasks.html"><span class="nav-icon">✨</span>AI 任务中心</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">平台</div>
+    <a class="nav-item" href="developer.html"><span class="nav-icon">🛠️</span>开发者平台</a>
+    <a class="nav-item" href="settings.html"><span class="nav-icon">⚙️</span>系统设置</a>
+  </div>
+  <div class="sidebar-bottom">
+    <a class="nav-item" href="profile.html"><div class="avatar avatar-sm" style="background:var(--gradient)">A</div><span class="identity-inline">Admin <span class="identity-badge human">人类</span></span></a>
+  </div>
+</aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-left">
+        <h2 style="font-size:16px;font-weight:700;color:var(--text);">⊕ 标签管理</h2>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-ghost btn-sm" onclick="showToast('AI 正在扫描建议标签...','info')">✦ AI 建议标签</button>
+        <button class="btn btn-primary btn-sm" onclick="openModal('new-tag-modal')">+ 新建标签</button>
+        <div class="avatar" title="当前用户">U</div>
+      </div>
+    </header>
+
+    <div style="overflow-y:auto;height:calc(100vh - var(--topbar-h));">
+      <div class="tags-layout">
+        <div>
+          <!-- Tag Cloud -->
+          <div class="tag-cloud-section">
+            <div class="tag-cloud-title">
+              ☁ 标签云
+              <span class="badge badge-gray" style="font-size:11px;">共 48 个标签</span>
+              <div style="flex:1;"></div>
+              <select style="font-size:12px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;background:#fff;">
+                <option>按使用频率</option>
+                <option>按字母顺序</option>
+                <option>按创建时间</option>
+              </select>
+            </div>
+            <div class="tag-cloud">
+              <span class="tag-bubble xl" style="background:#ede9fe;color:#4f46e5;" onclick="filterByTag(this,'产品设计')">产品设计 <span class="tb-count">·86</span></span>
+              <span class="tag-bubble lg" style="background:#dbeafe;color:#1d4ed8;" onclick="filterByTag(this,'AI')">AI <span class="tb-count">·74</span></span>
+              <span class="tag-bubble lg" style="background:#d1fae5;color:#065f46;" onclick="filterByTag(this,'文档规范')">文档规范 <span class="tb-count">·62</span></span>
+              <span class="tag-bubble md" style="background:#fef3c7;color:#92400e;" onclick="filterByTag(this,'版本控制')">版本控制 <span class="tb-count">·45</span></span>
+              <span class="tag-bubble md" style="background:#fce7f3;color:#9d174d;" onclick="filterByTag(this,'权限管理')">权限管理 <span class="tb-count">·41</span></span>
+              <span class="tag-bubble md" style="background:#ecfdf5;color:#065f46;" onclick="filterByTag(this,'API')">API <span class="tb-count">·38</span></span>
+              <span class="tag-bubble sm" style="background:#f0f9ff;color:#0369a1;" onclick="filterByTag(this,'数据库')">数据库 <span class="tb-count">·35</span></span>
+              <span class="tag-bubble sm" style="background:#fdf4ff;color:#7e22ce;" onclick="filterByTag(this,'搜索')">搜索 <span class="tb-count">·32</span></span>
+              <span class="tag-bubble sm" style="background:#fff7ed;color:#c2410c;" onclick="filterByTag(this,'SEO')">SEO <span class="tb-count">·29</span></span>
+              <span class="tag-bubble sm" style="background:#f0fdf4;color:#15803d;" onclick="filterByTag(this,'发布流程')">发布流程 <span class="tb-count">·27</span></span>
+              <span class="tag-bubble sm" style="background:#ede9fe;color:#6d28d9;" onclick="filterByTag(this,'向量')">向量 <span class="tb-count">·24</span></span>
+              <span class="tag-bubble xs" style="background:#fef2f2;color:#b91c1c;" onclick="filterByTag(this,'安全')">安全 <span class="tb-count">·22</span></span>
+              <span class="tag-bubble xs" style="background:#e0f2fe;color:#0369a1;" onclick="filterByTag(this,'webhook')">webhook <span class="tb-count">·19</span></span>
+              <span class="tag-bubble xs" style="background:#f1f5f9;color:#475569;" onclick="filterByTag(this,'CLI')">CLI <span class="tb-count">·17</span></span>
+              <span class="tag-bubble xs" style="background:#fdf4ff;color:#7e22ce;" onclick="filterByTag(this,'协作')">协作 <span class="tb-count">·15</span></span>
+              <span class="tag-bubble xs" style="background:#ecfdf5;color:#065f46;" onclick="filterByTag(this,'Git Sync')">Git Sync <span class="tb-count">·14</span></span>
+              <span class="tag-bubble xs" style="background:#fef3c7;color:#92400e;" onclick="filterByTag(this,'教程')">教程 <span class="tb-count">·12</span></span>
+              <span class="tag-bubble xs" style="background:#f0f9ff;color:#0369a1;" onclick="filterByTag(this,'架构')">架构 <span class="tb-count">·11</span></span>
+              <span class="tag-bubble xs" style="background:#fce7f3;color:#9d174d;" onclick="filterByTag(this,'多语言')">多语言 <span class="tb-count">·9</span></span>
+              <span class="tag-bubble xs" style="background:#d1fae5;color:#065f46;" onclick="filterByTag(this,'部署')">部署 <span class="tb-count">·8</span></span>
+            </div>
+          </div>
+
+          <!-- Tag Table -->
+          <div class="tag-table-section">
+            <div class="tag-table-header">
+              <h4>所有标签</h4>
+              <div style="flex:1;"></div>
+              <input class="form-input" placeholder="搜索标签..." style="width:180px;" oninput="filterTagTable(this.value)"/>
+            </div>
+            <div class="search-filter-row">
+              <select style="font-size:12px;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;">
+                <option>全部空间</option>
+                <option>SoulDoc 产品设计</option>
+                <option>工程技术</option>
+              </select>
+              <select style="font-size:12px;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;">
+                <option>所有颜色</option>
+                <option>🟣 紫色</option>
+                <option>🔵 蓝色</option>
+                <option>🟢 绿色</option>
+              </select>
+              <div style="flex:1;"></div>
+              <span style="font-size:12px;color:var(--muted);">共 48 个标签</span>
+            </div>
+
+            <!-- Table header -->
+            <div class="tag-row" style="background:var(--bg);font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;">
+              <div></div>
+              <div>标签名称</div>
+              <div>使用次数</div>
+              <div>关联空间</div>
+              <div>创建者</div>
+              <div></div>
+            </div>
+
+            <!-- Rows -->
+            <div class="tag-row">
+              <div class="tag-color-dot" style="background:#4f46e5;"></div>
+              <div class="tag-name-cell">
+                <span class="tag-label-preview" style="background:#ede9fe;color:#4f46e5;">产品设计</span>
+                <span style="font-size:11px;color:var(--muted);">AI 自动建议</span>
+              </div>
+              <div><span class="tag-count-badge">86 篇</span></div>
+              <div style="font-size:12px;color:var(--muted);">3 个空间</div>
+              <div style="font-size:12px;color:var(--muted);">AI Bot</div>
+              <div class="tag-actions-cell">
+                <button class="btn btn-ghost btn-sm" onclick="openModal('edit-tag-modal')">✏</button>
+                <button class="btn btn-danger btn-sm" onclick="confirmDeleteTag('产品设计')">✕</button>
+              </div>
+            </div>
+
+            <div class="tag-row">
+              <div class="tag-color-dot" style="background:#2563eb;"></div>
+              <div class="tag-name-cell">
+                <span class="tag-label-preview" style="background:#dbeafe;color:#1d4ed8;">AI</span>
+              </div>
+              <div><span class="tag-count-badge">74 篇</span></div>
+              <div style="font-size:12px;color:var(--muted);">5 个空间</div>
+              <div style="font-size:12px;color:var(--muted);">张磊</div>
+              <div class="tag-actions-cell">
+                <button class="btn btn-ghost btn-sm" onclick="openModal('edit-tag-modal')">✏</button>
+                <button class="btn btn-danger btn-sm" onclick="showToast('标签已移入待删除队列','warning')">✕</button>
+              </div>
+            </div>
+
+            <div class="tag-row">
+              <div class="tag-color-dot" style="background:#059669;"></div>
+              <div class="tag-name-cell">
+                <span class="tag-label-preview" style="background:#d1fae5;color:#065f46;">文档规范</span>
+              </div>
+              <div><span class="tag-count-badge">62 篇</span></div>
+              <div style="font-size:12px;color:var(--muted);">2 个空间</div>
+              <div style="font-size:12px;color:var(--muted);"><span class="identity-inline">李明 <span class="identity-badge human">人类</span></span></div>
+              <div class="tag-actions-cell">
+                <button class="btn btn-ghost btn-sm" onclick="openModal('edit-tag-modal')">✏</button>
+                <button class="btn btn-danger btn-sm" onclick="showToast('标签已移入待删除队列','warning')">✕</button>
+              </div>
+            </div>
+
+            <div class="tag-row">
+              <div class="tag-color-dot" style="background:#d97706;"></div>
+              <div class="tag-name-cell">
+                <span class="tag-label-preview" style="background:#fef3c7;color:#92400e;">版本控制</span>
+              </div>
+              <div><span class="tag-count-badge">45 篇</span></div>
+              <div style="font-size:12px;color:var(--muted);">4 个空间</div>
+              <div style="font-size:12px;color:var(--muted);">张磊</div>
+              <div class="tag-actions-cell">
+                <button class="btn btn-ghost btn-sm" onclick="openModal('edit-tag-modal')">✏</button>
+                <button class="btn btn-danger btn-sm" onclick="showToast('标签已移入待删除队列','warning')">✕</button>
+              </div>
+            </div>
+
+            <div class="tag-row">
+              <div class="tag-color-dot" style="background:#be185d;"></div>
+              <div class="tag-name-cell">
+                <span class="tag-label-preview" style="background:#fce7f3;color:#9d174d;">权限管理</span>
+              </div>
+              <div><span class="tag-count-badge">41 篇</span></div>
+              <div style="font-size:12px;color:var(--muted);">2 个空间</div>
+              <div style="font-size:12px;color:var(--muted);"><span class="identity-inline">王芳 <span class="identity-badge human">人类</span></span></div>
+              <div class="tag-actions-cell">
+                <button class="btn btn-ghost btn-sm" onclick="openModal('edit-tag-modal')">✏</button>
+                <button class="btn btn-danger btn-sm" onclick="showToast('标签已移入待删除队列','warning')">✕</button>
+              </div>
+            </div>
+
+            <div class="tag-row">
+              <div class="tag-color-dot" style="background:#0891b2;"></div>
+              <div class="tag-name-cell">
+                <span class="tag-label-preview" style="background:#ecfdf5;color:#065f46;">API</span>
+              </div>
+              <div><span class="tag-count-badge">38 篇</span></div>
+              <div style="font-size:12px;color:var(--muted);">6 个空间</div>
+              <div style="font-size:12px;color:var(--muted);">系统</div>
+              <div class="tag-actions-cell">
+                <button class="btn btn-ghost btn-sm" onclick="openModal('edit-tag-modal')">✏</button>
+                <button class="btn btn-danger btn-sm" onclick="showToast('标签已移入待删除队列','warning')">✕</button>
+              </div>
+            </div>
+
+            <div style="padding:10px 20px;text-align:center;border-top:1px solid var(--border);">
+              <button class="btn btn-ghost btn-sm" onclick="showToast('更多标签结果待接入','default')">加载更多 (42 个标签)</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats sidebar -->
+        <div class="stats-sidebar">
+          <div class="stat-card-small">
+            <h4>📊 标签统计</h4>
+            <div class="tag-stats-grid">
+              <div class="mini-stat">
+                <div class="ms-num">48</div>
+                <div class="ms-label">总标签数</div>
+              </div>
+              <div class="mini-stat">
+                <div class="ms-num">734</div>
+                <div class="ms-label">总标记次数</div>
+              </div>
+              <div class="mini-stat">
+                <div class="ms-num" style="font-size:18px;">15.3</div>
+                <div class="ms-label">平均每篇</div>
+              </div>
+              <div class="mini-stat">
+                <div class="ms-num" style="color:#059669;font-size:18px;">+12</div>
+                <div class="ms-label">本周新增</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="stat-card-small">
+            <h4>🏆 最热门标签</h4>
+            <div class="popular-tag-item">
+              <div class="pti-rank gold">1</div>
+              <div class="pti-info">
+                <div class="pti-name">产品设计</div>
+                <div class="pti-count">86 篇文档</div>
+              </div>
+              <div class="pti-bar"><div class="pti-fill" style="width:100%;"></div></div>
+            </div>
+            <div class="popular-tag-item">
+              <div class="pti-rank silver">2</div>
+              <div class="pti-info">
+                <div class="pti-name">AI</div>
+                <div class="pti-count">74 篇文档</div>
+              </div>
+              <div class="pti-bar"><div class="pti-fill" style="width:86%;"></div></div>
+            </div>
+            <div class="popular-tag-item">
+              <div class="pti-rank bronze">3</div>
+              <div class="pti-info">
+                <div class="pti-name">文档规范</div>
+                <div class="pti-count">62 篇文档</div>
+              </div>
+              <div class="pti-bar"><div class="pti-fill" style="width:72%;"></div></div>
+            </div>
+            <div class="popular-tag-item">
+              <div class="pti-rank">4</div>
+              <div class="pti-info">
+                <div class="pti-name">版本控制</div>
+                <div class="pti-count">45 篇文档</div>
+              </div>
+              <div class="pti-bar"><div class="pti-fill" style="width:52%;"></div></div>
+            </div>
+            <div class="popular-tag-item">
+              <div class="pti-rank">5</div>
+              <div class="pti-info">
+                <div class="pti-name">权限管理</div>
+                <div class="pti-count">41 篇文档</div>
+              </div>
+              <div class="pti-bar"><div class="pti-fill" style="width:48%;"></div></div>
+            </div>
+          </div>
+
+          <div class="stat-card-small">
+            <h4>✦ AI 标签建议</h4>
+            <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">AI 分析文档内容，发现以下高价值标签尚未创建：</p>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--bg);border-radius:8px;">
+                <span style="flex:1;font-size:12px;font-weight:600;">知识图谱</span>
+                <span style="font-size:11px;color:var(--muted);">预计 23 篇</span>
+                <button class="btn btn-primary btn-sm" onclick="createAITag('知识图谱')">+ 采用</button>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--bg);border-radius:8px;">
+                <span style="flex:1;font-size:12px;font-weight:600;">RAG</span>
+                <span style="font-size:11px;color:var(--muted);">预计 18 篇</span>
+                <button class="btn btn-primary btn-sm" onclick="createAITag('RAG')">+ 采用</button>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--bg);border-radius:8px;">
+                <span style="flex:1;font-size:12px;font-weight:600;">多租户</span>
+                <span style="font-size:11px;color:var(--muted);">预计 12 篇</span>
+                <button class="btn btn-primary btn-sm" onclick="createAITag('多租户')">+ 采用</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="stat-card-small">
+            <h4>🗑 无效标签</h4>
+            <p style="font-size:12px;color:var(--muted);margin-bottom:10px;">以下标签无文档使用，建议清理：</p>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span class="tag-label-preview" style="background:#f1f5f9;color:#64748b;font-size:11px;">旧版本</span>
+                <span style="flex:1;font-size:11px;color:var(--muted);">0 篇</span>
+                <button class="btn btn-ghost btn-sm" onclick="showToast('已删除标签：旧版本','success')">删除</button>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span class="tag-label-preview" style="background:#f1f5f9;color:#64748b;font-size:11px;">test</span>
+                <span style="flex:1;font-size:11px;color:var(--muted);">0 篇</span>
+                <button class="btn btn-ghost btn-sm" onclick="showToast('已删除标签：test','success')">删除</button>
+              </div>
+            </div>
+            <button class="btn btn-danger btn-sm" style="margin-top:10px;width:100%;" onclick="showToast('已清理 2 个无效标签','success')">一键清理全部</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- New Tag Modal -->
+<div class="modal-overlay" id="new-tag-modal">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <h3 class="modal-title">新建标签</h3>
+      <button class="modal-close" onclick="closeModal('new-tag-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <label class="form-label">标签名称 <span style="color:red;">*</span></label>
+          <input class="form-input" id="new-tag-name" placeholder="输入标签名..." oninput="updateTagPreview()"/>
+        </div>
+        <div>
+          <label class="form-label">标签颜色</label>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <div class="tag-color-dot" style="background:#4f46e5;width:24px;height:24px;cursor:pointer;border:2px solid #4f46e5;box-shadow:0 0 0 2px #fff inset;" onclick="selectColor(this,'#4f46e5')"></div>
+            <div class="tag-color-dot" style="background:#2563eb;width:24px;height:24px;cursor:pointer;" onclick="selectColor(this,'#2563eb')"></div>
+            <div class="tag-color-dot" style="background:#059669;width:24px;height:24px;cursor:pointer;" onclick="selectColor(this,'#059669')"></div>
+            <div class="tag-color-dot" style="background:#d97706;width:24px;height:24px;cursor:pointer;" onclick="selectColor(this,'#d97706')"></div>
+            <div class="tag-color-dot" style="background:#dc2626;width:24px;height:24px;cursor:pointer;" onclick="selectColor(this,'#dc2626')"></div>
+            <div class="tag-color-dot" style="background:#7c3aed;width:24px;height:24px;cursor:pointer;" onclick="selectColor(this,'#7c3aed')"></div>
+            <div class="tag-color-dot" style="background:#be185d;width:24px;height:24px;cursor:pointer;" onclick="selectColor(this,'#be185d')"></div>
+            <div class="tag-color-dot" style="background:#64748b;width:24px;height:24px;cursor:pointer;" onclick="selectColor(this,'#64748b')"></div>
+          </div>
+        </div>
+        <div>
+          <label class="form-label">预览</label>
+          <span id="tag-preview" class="tag-label-preview" style="background:#ede9fe;color:#4f46e5;">新标签</span>
+        </div>
+        <div>
+          <label class="form-label">应用到空间</label>
+          <select class="form-select" style="width:100%;">
+            <option>全部空间 (全局标签)</option>
+            <option>SoulDoc 产品设计</option>
+            <option>工程技术</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('new-tag-modal')">取消</button>
+      <button class="btn btn-primary" onclick="createTag()">创建标签</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Tag Modal -->
+<div class="modal-overlay" id="edit-tag-modal">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <h3 class="modal-title">编辑标签 — 产品设计</h3>
+      <button class="modal-close" onclick="closeModal('edit-tag-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <label class="form-label">标签名称</label>
+          <input class="form-input" value="产品设计"/>
+        </div>
+        <div>
+          <label class="form-label">标签颜色</label>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <div class="tag-color-dot" style="background:#4f46e5;width:24px;height:24px;cursor:pointer;border:3px solid #6366f1;"></div>
+            <div class="tag-color-dot" style="background:#2563eb;width:24px;height:24px;cursor:pointer;"></div>
+            <div class="tag-color-dot" style="background:#059669;width:24px;height:24px;cursor:pointer;"></div>
+            <div class="tag-color-dot" style="background:#d97706;width:24px;height:24px;cursor:pointer;"></div>
+          </div>
+        </div>
+        <div>
+          <label class="form-label">批量重命名</label>
+          <p style="font-size:12px;color:var(--muted);">将同步更新 86 篇文档中的标签名称</p>
+          <label style="display:flex;gap:8px;align-items:center;font-size:13px;cursor:pointer;">
+            <input type="checkbox" checked/> 同步更新所有使用该标签的文档
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('edit-tag-modal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('edit-tag-modal');showToast('标签已更新','success')">保存修改</button>
+    </div>
+  </div>
+</div>
+
+<script src="nav.js"></script>
+<script>
+function filterByTag(el, name) {
+  document.querySelectorAll('.tag-bubble').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  showToast('已筛选标签：' + name, 'info');
+}
+function filterTagTable(val) {
+  // In real app, filter rows
+}
+function updateTagPreview() {
+  const name = document.getElementById('new-tag-name').value || '新标签';
+  document.getElementById('tag-preview').textContent = name;
+}
+function selectColor(dot, color) {
+  document.querySelectorAll('#new-tag-modal .tag-color-dot').forEach(d => d.style.boxShadow = '');
+  dot.style.boxShadow = '0 0 0 3px ' + color + '40';
+}
+function createTag() {
+  const name = document.getElementById('new-tag-name').value || '新标签';
+  closeModal('new-tag-modal');
+  showToast('标签 "' + name + '" 已创建', 'success');
+}
+function createAITag(name) {
+  showToast('标签 "' + name + '" 已采用并创建', 'success');
+}
+function confirmDeleteTag(name) {
+  if(confirm('确认删除标签 "' + name + '"？此操作将从 86 篇文档中移除该标签。')) {
+    showToast('标签已删除', 'success');
+  }
+}
+</script>
+</body>
+</html>

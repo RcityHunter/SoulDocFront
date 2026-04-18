@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 任务中心 — SoulDoc</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.task-grid { display:grid; grid-template-columns:1fr 360px; gap:0; height:calc(100vh - var(--topbar-h)); overflow:hidden; }
+.task-main { overflow-y:auto; padding:24px; }
+.task-sidebar { border-left:1px solid var(--border); background:var(--panel); overflow-y:auto; padding:20px; }
+.task-filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px; align-items:center; }
+.task-filter-btn { padding:5px 14px; border-radius:20px; border:1px solid var(--border); background:#fff; font-size:12px; cursor:pointer; color:var(--muted); transition:all .15s; }
+.task-filter-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+.task-card { background:var(--panel); border-radius:var(--radius); border:1px solid var(--border); padding:18px 20px; margin-bottom:12px; transition:box-shadow .15s; cursor:pointer; }
+.task-card:hover { box-shadow:var(--shadow-md); }
+.task-card.running { border-left:3px solid var(--primary); }
+.task-card.queued { border-left:3px solid #d97706; }
+.task-card.done { border-left:3px solid #059669; }
+.task-card.failed { border-left:3px solid #dc2626; }
+.tc-header { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.tc-icon { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+.tc-icon.ai-summary { background:#ede9fe; }
+.tc-icon.ai-embed { background:#dbeafe; }
+.tc-icon.ai-tag { background:#d1fae5; }
+.tc-icon.ai-translate { background:#fef3c7; }
+.tc-icon.ai-cr { background:#fce7f3; }
+.tc-icon.ai-publish { background:#ecfdf5; }
+.tc-title { flex:1; }
+.tc-title h4 { font-size:14px; font-weight:600; color:var(--text); }
+.tc-title p { font-size:12px; color:var(--muted); margin:2px 0 0; }
+.tc-status { flex-shrink:0; }
+.tc-progress { margin:10px 0; }
+.tc-progress-bar { height:6px; background:#e5e7eb; border-radius:3px; overflow:hidden; }
+.tc-progress-fill { height:100%; border-radius:3px; transition:width 1s; }
+.tc-progress-fill.running { background:var(--gradient); }
+.tc-progress-fill.done { background:#059669; }
+.tc-progress-fill.queued { background:#d97706; }
+.tc-meta { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+.tc-meta span { font-size:11px; color:var(--muted); }
+.tc-meta .tc-doc { font-size:12px; color:var(--primary); font-weight:500; }
+.tc-actions { display:flex; gap:6px; margin-top:10px; }
+.ai-stat-cards { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px; }
+.ai-stat-card { background:var(--panel); border-radius:var(--radius); border:1px solid var(--border); padding:16px; text-align:center; }
+.ai-stat-card .asc-num { font-size:28px; font-weight:800; color:var(--primary); }
+.ai-stat-card .asc-label { font-size:11px; color:var(--muted); margin-top:4px; }
+.ai-stat-card .asc-sub { font-size:12px; color:var(--muted); margin-top:2px; }
+.ai-stat-card.running-card .asc-num { color:#d97706; }
+.ai-stat-card.done-card .asc-num { color:#059669; }
+.ai-stat-card.failed-card .asc-num { color:#dc2626; }
+.sidebar-section { margin-bottom:24px; }
+.sidebar-section h4 { font-size:13px; font-weight:700; color:var(--text); margin-bottom:12px; display:flex; align-items:center; gap:6px; }
+.queue-item { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border); }
+.queue-item:last-child { border-bottom:none; }
+.qi-num { width:20px; height:20px; border-radius:50%; background:var(--bg); font-size:11px; font-weight:700; color:var(--muted); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.qi-info { flex:1; }
+.qi-info h5 { font-size:12px; font-weight:600; color:var(--text); }
+.qi-info p { font-size:11px; color:var(--muted); }
+.ai-model-card { background:linear-gradient(135deg,#1e1b4b,#312e81); color:#fff; border-radius:var(--radius); padding:16px; margin-bottom:16px; }
+.ai-model-card h4 { font-size:13px; font-weight:700; margin-bottom:8px; }
+.ai-model-card .model-name { font-size:18px; font-weight:800; margin-bottom:4px; }
+.ai-model-card .model-meta { font-size:11px; color:#c4b5fd; display:flex; gap:12px; }
+.ai-usage-bar { margin-top:12px; }
+.ai-usage-bar .aub-label { display:flex; justify-content:space-between; font-size:11px; color:#c4b5fd; margin-bottom:4px; }
+.aub-track { height:5px; background:rgba(255,255,255,.2); border-radius:3px; }
+.aub-fill { height:100%; border-radius:3px; background:linear-gradient(90deg,#818cf8,#60a5fa); }
+.type-breakdown { display:flex; flex-direction:column; gap:8px; }
+.type-row { display:flex; align-items:center; gap:8px; }
+.type-row .tr-label { font-size:12px; color:var(--muted); width:80px; }
+.type-row .tr-bar { flex:1; height:6px; background:#e5e7eb; border-radius:3px; overflow:hidden; }
+.type-row .tr-fill { height:100%; border-radius:3px; }
+.type-row .tr-num { font-size:12px; font-weight:600; color:var(--text); width:30px; text-align:right; }
+.pulse-dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:#d97706; animation:pulse 1.5s infinite; }
+.pulse-dot.green { background:#059669; }
+@keyframes pulse {
+  0%,100%{opacity:1;transform:scale(1);}
+  50%{opacity:.5;transform:scale(1.3);}
+}
+.running-spinner { display:inline-block; width:14px; height:14px; border:2px solid #ddd; border-top-color:var(--primary); border-radius:50%; animation:spin .8s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">SD</div>
+    <div class="brand-text"><h1>SoulDoc</h1><p>AI 原生知识工作台</p></div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">主导航</div>
+    <a class="nav-item" href="index.html"><span class="nav-icon">🏠</span>首页</a>
+    <a class="nav-item" href="spaces.html"><span class="nav-icon">🗂️</span>知识空间</a>
+    <a class="nav-item" href="search.html"><span class="nav-icon">🔍</span>搜索</a>
+    <a class="nav-item" href="notifications.html"><span class="nav-icon">🔔</span>通知中心 <span class="nav-badge">5</span></a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">当前空间 · SoulDoc Demo</div>
+    <a class="nav-item" href="space.html"><span class="nav-icon">📌</span>空间概览</a>
+    <a class="nav-item" href="docs.html"><span class="nav-icon">📚</span>文档中心</a>
+    <a class="nav-item" href="editor.html"><span class="nav-icon">✏️</span>编辑器</a>
+    <a class="nav-item" href="change-request.html"><span class="nav-icon">🧾</span>变更请求</a>
+    <a class="nav-item" href="members.html"><span class="nav-icon">👥</span>成员权限</a>
+    <a class="nav-item" href="tags.html"><span class="nav-icon">🏷️</span>标签管理</a>
+    <a class="nav-item" href="files.html"><span class="nav-icon">📁</span>文件管理</a>
+    <a class="nav-item" href="seo.html"><span class="nav-icon">🌐</span>发布 & SEO</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">智能与语言</div>
+    <a class="nav-item" href="language.html"><span class="nav-icon">🌍</span>语言版本</a>
+    <a class="nav-item active" href="ai-tasks.html"><span class="nav-icon">✨</span>AI 任务中心</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">平台</div>
+    <a class="nav-item" href="developer.html"><span class="nav-icon">🛠️</span>开发者平台</a>
+    <a class="nav-item" href="settings.html"><span class="nav-icon">⚙️</span>系统设置</a>
+  </div>
+  <div class="sidebar-bottom">
+    <a class="nav-item" href="profile.html"><div class="avatar avatar-sm" style="background:var(--gradient)">A</div><span class="identity-inline">Admin <span class="identity-badge human">人类</span></span></a>
+  </div>
+</aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-left">
+        <h2 style="font-size:16px;font-weight:700;color:var(--text);">⟳ AI 任务中心</h2>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-ghost btn-sm" onclick="showToast('已刷新任务列表','info')">↺ 刷新</button>
+        <button class="btn btn-primary btn-sm" onclick="openModal('new-task-modal')">+ 新建批量任务</button>
+        <div class="avatar" title="当前用户">A</div>
+      </div>
+    </header>
+
+    <div class="task-grid">
+      <div class="task-main">
+        <!-- Stats -->
+        <div class="ai-stat-cards">
+          <div class="ai-stat-card running-card">
+            <div class="asc-num">3</div>
+            <div class="asc-label">运行中</div>
+            <div class="asc-sub"><span class="pulse-dot"></span> 实时</div>
+          </div>
+          <div class="ai-stat-card">
+            <div class="asc-num" style="color:#d97706;">8</div>
+            <div class="asc-label">队列等待</div>
+            <div class="asc-sub">预计 ~4 分钟</div>
+          </div>
+          <div class="ai-stat-card done-card">
+            <div class="asc-num">247</div>
+            <div class="asc-label">今日完成</div>
+            <div class="asc-sub">成功率 97.2%</div>
+          </div>
+          <div class="ai-stat-card failed-card">
+            <div class="asc-num">7</div>
+            <div class="asc-label">失败任务</div>
+            <div class="asc-sub">需人工介入</div>
+          </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="task-filters">
+          <span style="font-size:12px;color:var(--muted);font-weight:600;">筛选：</span>
+          <button class="task-filter-btn active" onclick="filterTasks(this,'all')">全部</button>
+          <button class="task-filter-btn" onclick="filterTasks(this,'running')">运行中</button>
+          <button class="task-filter-btn" onclick="filterTasks(this,'queued')">等待中</button>
+          <button class="task-filter-btn" onclick="filterTasks(this,'done')">已完成</button>
+          <button class="task-filter-btn" onclick="filterTasks(this,'failed')">失败</button>
+          <div style="flex:1;"></div>
+          <select style="padding:5px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px;background:#fff;">
+            <option>所有类型</option>
+            <option>向量嵌入</option>
+            <option>摘要生成</option>
+            <option>标签提取</option>
+            <option>翻译</option>
+            <option>SEO优化</option>
+          </select>
+        </div>
+
+        <!-- Running tasks -->
+        <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">
+          🔵 运行中 (3)
+        </div>
+
+        <div class="task-card running" onclick="openModal('task-detail-modal')">
+          <div class="tc-header">
+            <div class="tc-icon ai-embed">🧬</div>
+            <div class="tc-title">
+              <h4>批量向量嵌入 — 产品知识库空间</h4>
+              <p>为 148 个文档块生成向量表示，用于语义搜索</p>
+            </div>
+            <div class="tc-status"><div class="running-spinner"></div></div>
+          </div>
+          <div class="tc-progress">
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px;">
+              <span>进度：78/148 块</span>
+              <span>52.7%</span>
+            </div>
+            <div class="tc-progress-bar">
+              <div class="tc-progress-fill running" style="width:52.7%;"></div>
+            </div>
+          </div>
+          <div class="tc-meta">
+            <span class="tc-doc">◈ 产品知识库</span>
+            <span>模型：text-embedding-3-large</span>
+            <span>耗时：01:42</span>
+            <span>预计剩余：01:32</span>
+          </div>
+          <div class="tc-actions">
+            <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();showToast('任务已暂停','warning')">⏸ 暂停</button>
+            <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();showToast('任务已取消','danger')">✕ 取消</button>
+          </div>
+        </div>
+
+        <div class="task-card running">
+          <div class="tc-header">
+            <div class="tc-icon ai-summary">✦</div>
+            <div class="tc-title">
+              <h4>AI 摘要批量生成 — 工程技术文档</h4>
+              <p>为无摘要的文档自动生成 AI 摘要</p>
+            </div>
+            <div class="tc-status"><div class="running-spinner"></div></div>
+          </div>
+          <div class="tc-progress">
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px;">
+              <span>进度：23/35 文档</span>
+              <span>65.7%</span>
+            </div>
+            <div class="tc-progress-bar">
+              <div class="tc-progress-fill running" style="width:65.7%;"></div>
+            </div>
+          </div>
+          <div class="tc-meta">
+            <span class="tc-doc">◈ 工程技术</span>
+            <span>模型：claude-sonnet-4-6</span>
+            <span>耗时：00:48</span>
+          </div>
+          <div class="tc-actions">
+            <button class="btn btn-ghost btn-sm" onclick="showToast('任务已暂停','warning')">⏸ 暂停</button>
+          </div>
+        </div>
+
+        <div class="task-card running">
+          <div class="tc-header">
+            <div class="tc-icon ai-tag">🏷</div>
+            <div class="tc-title">
+              <h4>智能标签提取 — 全空间扫描</h4>
+              <p>分析文档内容，自动建议相关标签</p>
+            </div>
+            <div class="tc-status"><div class="running-spinner"></div></div>
+          </div>
+          <div class="tc-progress">
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px;">
+              <span>进度：312/500 文档</span>
+              <span>62.4%</span>
+            </div>
+            <div class="tc-progress-bar">
+              <div class="tc-progress-fill running" style="width:62.4%;"></div>
+            </div>
+          </div>
+          <div class="tc-meta">
+            <span class="tc-doc">◈ 全部空间</span>
+            <span>触发：定时任务 (每日 02:00)</span>
+            <span>耗时：03:21</span>
+          </div>
+          <div class="tc-actions">
+            <button class="btn btn-ghost btn-sm" onclick="showToast('任务已暂停','warning')">⏸ 暂停</button>
+          </div>
+        </div>
+
+        <!-- Queued tasks -->
+        <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:20px 0 10px;">
+          🟡 队列等待 (8)
+        </div>
+
+        <div class="task-card queued">
+          <div class="tc-header">
+            <div class="tc-icon ai-translate">🌐</div>
+            <div class="tc-title">
+              <h4>多语言翻译 — SoulDoc 产品文档 (EN)</h4>
+              <p>将全部文档翻译为英文，保留原有格式</p>
+            </div>
+            <div class="tc-status"><span class="badge badge-warning">等待中 #1</span></div>
+          </div>
+          <div class="tc-meta">
+            <span class="tc-doc">◈ 产品文档</span>
+            <span>模型：claude-sonnet-4-6</span>
+            <span>目标文档数：42</span>
+            <span>预计时间：~6分钟</span>
+          </div>
+        </div>
+
+        <div class="task-card queued">
+          <div class="tc-header">
+            <div class="tc-icon ai-publish">📡</div>
+            <div class="tc-title">
+              <h4>SEO 元数据自动优化 — 发布站点</h4>
+              <p>为所有公开文档生成/优化 title、description、关键词</p>
+            </div>
+            <div class="tc-status"><span class="badge badge-warning">等待中 #2</span></div>
+          </div>
+          <div class="tc-meta">
+            <span class="tc-doc">◈ 发布站点</span>
+            <span>触发：发布前自动检查</span>
+            <span>目标：85 篇文档</span>
+          </div>
+        </div>
+
+        <div style="padding:8px 0;text-align:center;">
+          <button class="btn btn-ghost btn-sm" onclick="this.textContent='加载中...'">查看全部等待任务 (6 个)</button>
+        </div>
+
+        <!-- Done tasks -->
+        <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:20px 0 10px;">
+          🟢 最近完成 (247)
+        </div>
+
+        <div class="task-card done">
+          <div class="tc-header">
+            <div class="tc-icon ai-cr">🔍</div>
+            <div class="tc-title">
+              <h4>变更请求自动审阅 — CR#14</h4>
+              <p>AI 检查内容质量、格式规范、与现有文档一致性</p>
+            </div>
+            <div class="tc-status"><span class="badge badge-success">✓ 完成</span></div>
+          </div>
+          <div class="tc-meta">
+            <span class="tc-doc">◈ CR#14 · 产品设计</span>
+            <span>耗时：00:23</span>
+            <span>完成于：10:18</span>
+          </div>
+          <div class="tc-actions">
+            <button class="btn btn-ghost btn-sm" onclick="showToast('已查看审阅报告','info')">查看结果</button>
+          </div>
+        </div>
+
+        <div class="task-card done">
+          <div class="tc-header">
+            <div class="tc-icon ai-embed">🧬</div>
+            <div class="tc-title">
+              <h4>增量向量同步 — SoulDoc 产品设计</h4>
+              <p>文档更新后自动同步向量嵌入</p>
+            </div>
+            <div class="tc-status"><span class="badge badge-success">✓ 完成</span></div>
+          </div>
+          <div class="tc-meta">
+            <span class="tc-doc">◈ SoulDoc 产品设计</span>
+            <span>更新了 7 个块</span>
+            <span>耗时：00:08</span>
+            <span>完成于：10:24</span>
+          </div>
+        </div>
+
+        <!-- Failed tasks -->
+        <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:20px 0 10px;">
+          🔴 失败任务 (7)
+        </div>
+
+        <div class="task-card failed">
+          <div class="tc-header">
+            <div class="tc-icon ai-translate" style="background:#fee2e2;">🌐</div>
+            <div class="tc-title">
+              <h4>文档翻译失败 — API 配额不足</h4>
+              <p>翻译 API 达到每日限额，剩余 18 个文档未处理</p>
+            </div>
+            <div class="tc-status"><span class="badge badge-danger">✕ 失败</span></div>
+          </div>
+          <div style="background:#fef2f2;border-radius:8px;padding:10px;margin:8px 0;font-size:12px;color:#b91c1c;">
+            错误：<code>QuotaExceededException: Daily token limit reached for translation model</code>
+          </div>
+          <div class="tc-actions">
+            <button class="btn btn-primary btn-sm" onclick="showToast('任务已重新加入队列','success')">↺ 重试</button>
+            <button class="btn btn-ghost btn-sm" onclick="showToast('已查看错误详情','info')">查看日志</button>
+            <button class="btn btn-ghost btn-sm" onclick="showToast('已忽略该失败任务','info')">忽略</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right sidebar -->
+      <div class="task-sidebar">
+        <!-- AI Model -->
+        <div class="ai-model-card">
+          <h4>当前 AI 模型</h4>
+          <div class="model-name">claude-sonnet-4-6</div>
+          <div class="model-meta">
+            <span>🧠 主推理引擎</span>
+            <span>128K 上下文</span>
+          </div>
+          <div class="ai-usage-bar">
+            <div class="aub-label"><span>今日 Token 用量</span><span>68,420 / 100,000</span></div>
+            <div class="aub-track"><div class="aub-fill" style="width:68.4%;"></div></div>
+          </div>
+          <div class="ai-usage-bar">
+            <div class="aub-label"><span>嵌入向量 API</span><span>24,100 / 50,000</span></div>
+            <div class="aub-track"><div class="aub-fill" style="width:48.2%;"></div></div>
+          </div>
+        </div>
+
+        <!-- Queue -->
+        <div class="sidebar-section">
+          <h4>📋 任务队列</h4>
+          <div class="queue-item">
+            <div class="qi-num">1</div>
+            <div class="qi-info">
+              <h5>多语言翻译 (EN)</h5>
+              <p>等待嵌入任务完成后执行</p>
+            </div>
+            <span class="badge badge-warning" style="font-size:10px;">~6min</span>
+          </div>
+          <div class="queue-item">
+            <div class="qi-num">2</div>
+            <div class="qi-info">
+              <h5>SEO 元数据优化</h5>
+              <p>手动触发，等待资源</p>
+            </div>
+            <span class="badge badge-gray" style="font-size:10px;">~8min</span>
+          </div>
+          <div class="queue-item">
+            <div class="qi-num">3</div>
+            <div class="qi-info">
+              <h5>CR#15 自动审阅</h5>
+              <p>CR 提交触发</p>
+            </div>
+            <span class="badge badge-gray" style="font-size:10px;">~1min</span>
+          </div>
+        </div>
+
+        <!-- Task type breakdown -->
+        <div class="sidebar-section">
+          <h4>📊 今日任务类型分布</h4>
+          <div class="type-breakdown">
+            <div class="type-row">
+              <span class="tr-label">向量嵌入</span>
+              <div class="tr-bar"><div class="tr-fill" style="width:42%;background:#4f46e5;"></div></div>
+              <span class="tr-num">104</span>
+            </div>
+            <div class="type-row">
+              <span class="tr-label">摘要生成</span>
+              <div class="tr-bar"><div class="tr-fill" style="width:28%;background:#2563eb;"></div></div>
+              <span class="tr-num">68</span>
+            </div>
+            <div class="type-row">
+              <span class="tr-label">标签提取</span>
+              <div class="tr-bar"><div class="tr-fill" style="width:18%;background:#059669;"></div></div>
+              <span class="tr-num">45</span>
+            </div>
+            <div class="type-row">
+              <span class="tr-label">翻译</span>
+              <div class="tr-bar"><div class="tr-fill" style="width:10%;background:#d97706;"></div></div>
+              <span class="tr-num">24</span>
+            </div>
+            <div class="type-row">
+              <span class="tr-label">CR 审阅</span>
+              <div class="tr-bar"><div class="tr-fill" style="width:4%;background:#7c3aed;"></div></div>
+              <span class="tr-num">6</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <h4>🧠 工作流模板</h4>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div class="surface-note"><strong>对话转文档</strong><div style="font-size:12px;color:var(--muted)">意图识别 → 结构预览 → 草稿生成 → CR / 发布前检查</div></div>
+            <div class="surface-note"><strong>多语言复审</strong><div style="font-size:12px;color:var(--muted)">源文变化 → 翻译草稿 → 人工 / AI 复审 → locale 发布</div></div>
+            <div class="surface-note"><strong>发布前预检</strong><div style="font-size:12px;color:var(--muted)">SEO 完整度、语言回退、公开/私有可见性与 Git Sync 状态联查</div></div>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <h4>🛡️ 审计摘要</h4>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div class="surface-note">全部批量任务都会记录触发用户类型、对象范围、执行边界、模型与结果。</div>
+            <div class="surface-note">失败任务支持重试，但每次重试会形成新的审计事件，不会覆盖原始失败记录。</div>
+          </div>
+        </div>
+
+        <!-- Automation rules -->
+        <div class="sidebar-section">
+          <h4>⚡ 自动化规则</h4>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);">
+              <span style="font-size:14px;">🧬</span>
+              <div style="flex:1;font-size:12px;">
+                <div style="font-weight:600;color:var(--text);">文档保存时同步向量</div>
+                <div style="color:var(--muted);">触发：on_save</div>
+              </div>
+              <div class="toggle toggle-sm active" onclick="this.classList.toggle('active')"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);">
+              <span style="font-size:14px;">✦</span>
+              <div style="flex:1;font-size:12px;">
+                <div style="font-weight:600;color:var(--text);">CR 提交自动审阅</div>
+                <div style="color:var(--muted);">触发：on_cr_submit</div>
+              </div>
+              <div class="toggle toggle-sm active" onclick="this.classList.toggle('active')"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 0;">
+              <span style="font-size:14px;">📡</span>
+              <div style="flex:1;font-size:12px;">
+                <div style="font-weight:600;color:var(--text);">发布前 SEO 检查</div>
+                <div style="color:var(--muted);">触发：pre_publish</div>
+              </div>
+              <div class="toggle toggle-sm" onclick="this.classList.toggle('active')"></div>
+            </div>
+          </div>
+          <button class="btn btn-ghost btn-sm" style="margin-top:10px;width:100%;" onclick="openModal('new-task-modal')">+ 添加规则</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Task Detail Modal -->
+<div class="modal-overlay" id="task-detail-modal">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-header">
+      <h3 class="modal-title">任务详情 — 批量向量嵌入</h3>
+      <button class="modal-close" onclick="closeModal('task-detail-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+        <div><label class="form-label">任务 ID</label><div style="font-size:13px;font-family:monospace;">task_abc123xyz</div></div>
+        <div><label class="form-label">状态</label><span class="badge badge-primary">运行中</span></div>
+        <div><label class="form-label">触发方式</label><div style="font-size:13px;">手动触发</div></div>
+        <div><label class="form-label">触发用户</label><div style="font-size:13px;">张磊</div></div>
+        <div><label class="form-label">开始时间</label><div style="font-size:13px;">10:22:18</div></div>
+        <div><label class="form-label">预计完成</label><div style="font-size:13px;">~10:25:50</div></div>
+      </div>
+      <div class="tc-progress">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px;">
+          <span>处理进度</span><span>78 / 148 块 (52.7%)</span>
+        </div>
+        <div class="tc-progress-bar" style="height:8px;">
+          <div class="tc-progress-fill running" style="width:52.7%;"></div>
+        </div>
+      </div>
+      <div style="margin-top:16px;">
+        <label class="form-label">实时日志</label>
+        <div style="background:#0f172a;border-radius:8px;padding:12px;font-family:monospace;font-size:11px;color:#94a3b8;height:120px;overflow-y:auto;line-height:1.6;">
+          <div>[10:22:18] 任务启动，初始化嵌入模型...</div>
+          <div>[10:22:19] 连接向量数据库 (SurrealDB)...</div>
+          <div>[10:22:20] 开始处理文档块...</div>
+          <div style="color:#86efac;">[10:22:20] ✓ Block#1 embedded (dim=1536)</div>
+          <div style="color:#86efac;">[10:22:21] ✓ Block#2 embedded</div>
+          <div style="color:#86efac;">[10:22:21] ✓ Block#3 embedded</div>
+          <div style="color:#fbbf24;">[10:22:45] ⚠ Block#23 重试 (rate limit)</div>
+          <div style="color:#86efac;">[10:22:46] ✓ Block#23 embedded (retry ok)</div>
+          <div style="color:#86efac;">[10:24:00] ✓ Block#78 embedded</div>
+          <div style="color:#94a3b8;">[10:24:01] 处理中 Block#79...</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('task-detail-modal')">关闭</button>
+      <button class="btn btn-danger" onclick="closeModal('task-detail-modal');showToast('任务已取消','danger')">取消任务</button>
+    </div>
+  </div>
+</div>
+
+<!-- New Task Modal -->
+<div class="modal-overlay" id="new-task-modal">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <h3 class="modal-title">新建批量 AI 任务</h3>
+      <button class="modal-close" onclick="closeModal('new-task-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <label class="form-label">任务类型</label>
+          <select class="form-select" style="width:100%;">
+            <option>🧬 向量嵌入 (Embedding)</option>
+            <option>✦ AI 摘要生成</option>
+            <option>🏷 智能标签提取</option>
+            <option>🌐 多语言翻译</option>
+            <option>📡 SEO 元数据优化</option>
+            <option>🔍 变更请求审阅</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">目标范围</label>
+          <select class="form-select" style="width:100%;">
+            <option>当前空间 — SoulDoc 产品设计</option>
+            <option>指定文档</option>
+            <option>全部空间</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">优先级</label>
+          <div style="display:flex;gap:8px;">
+            <button class="task-filter-btn" onclick="setPriority(this,'low')">低</button>
+            <button class="task-filter-btn active" onclick="setPriority(this,'normal')">普通</button>
+            <button class="task-filter-btn" onclick="setPriority(this,'high')">高</button>
+          </div>
+        </div>
+        <div>
+          <label class="form-label">定时执行（可选）</label>
+          <input class="form-input" type="datetime-local" />
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('new-task-modal')">取消</button>
+      <button class="btn btn-primary" onclick="submitTask()">立即提交</button>
+    </div>
+  </div>
+</div>
+
+<script src="nav.js"></script>
+<script>
+function filterTasks(btn, type) {
+  document.querySelectorAll('.task-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  showToast('已筛选：' + btn.textContent, 'info');
+}
+function setPriority(btn, level) {
+  btn.closest('div').querySelectorAll('.task-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function submitTask() {
+  closeModal('new-task-modal');
+  showToast('AI 任务已加入队列', 'success');
+}
+// Simulate progress update
+setInterval(() => {
+  document.querySelectorAll('.tc-progress-fill.running').forEach(bar => {
+    let w = parseFloat(bar.style.width);
+    if (w < 99) bar.style.width = (w + 0.1) + '%';
+  });
+}, 500);
+</script>
+</body>
+</html>

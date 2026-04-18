@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>语言版本中心 — SoulDoc</title>
+<link rel="stylesheet" href="style.css">
+<meta http-equiv="refresh" content="0; url=language.html">
+<style>
+.ai-layout { display:grid; grid-template-columns:280px 1fr 300px; flex:1; min-height:calc(100vh - 62px); }
+.ai-left { border-right:1px solid var(--line); background:var(--panel); overflow-y:auto; }
+.ai-center { display:flex; flex-direction:column; background:var(--bg); }
+.ai-right { border-left:1px solid var(--line); background:var(--panel); overflow-y:auto; }
+.ai-chat-area { flex:1; overflow-y:auto; padding:24px 28px; }
+.ai-chat-input-area { padding:16px 24px; border-top:1px solid var(--line); background:var(--panel); }
+.ai-tool-section { padding:16px; border-bottom:1px solid var(--line); }
+.tool-btn { display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--text2);width:100%;margin-bottom:8px;cursor:pointer;transition:var(--transition);font-size:13px;text-align:left; }
+.tool-btn:hover { border-color:var(--primary-border);background:var(--primary-light);color:var(--primary); }
+.tool-btn-icon { font-size:18px;flex-shrink:0; }
+.context-doc { display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel);cursor:pointer;transition:var(--transition); }
+.context-doc:hover { border-color:var(--primary-border); }
+.suggested-q { display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel);cursor:pointer;transition:var(--transition);font-size:13px;color:var(--text2);margin-bottom:6px; }
+.suggested-q:hover { border-color:var(--primary-border);color:var(--primary);background:var(--primary-light); }
+</style>
+</head>
+<body>
+<div class="app-layout">
+<aside class="sidebar">
+  <div class="sidebar-brand"><div class="brand-logo">SD</div><div class="brand-text"><h1>SoulDoc</h1><p>AI 原生知识工作台</p></div></div>
+  <div class="nav-section">
+    <div class="nav-section-title">主导航</div>
+    <a class="nav-item" href="index.html"><span class="nav-icon">🏠</span>首页</a>
+    <a class="nav-item" href="spaces.html"><span class="nav-icon">🗂️</span>知识空间</a>
+    <a class="nav-item" href="search.html"><span class="nav-icon">🔍</span>搜索</a>
+    <a class="nav-item" href="notifications.html"><span class="nav-icon">🔔</span>通知 <span class="nav-badge">5</span></a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">📘 SoulDoc Demo</div>
+    <a class="nav-item" href="space.html"><span class="nav-icon">📊</span>空间概览</a>
+    <a class="nav-item" href="docs.html"><span class="nav-icon">📄</span>文档中心</a>
+    <a class="nav-item" href="editor.html"><span class="nav-icon">✏️</span>编辑器</a>
+    <a class="nav-item" href="change-request.html"><span class="nav-icon">🔀</span>变更请求</a>
+    <a class="nav-item" href="members.html"><span class="nav-icon">👥</span>成员权限</a>
+    <a class="nav-item" href="seo.html"><span class="nav-icon">🌐</span>发布 & SEO</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">智能与语言</div>
+    <a class="nav-item active" href="language.html"><span class="nav-icon">✨</span>语言版本</a>
+    <a class="nav-item" href="ai-tasks.html"><span class="nav-icon">⚡</span>AI 任务中心</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">平台</div>
+    <a class="nav-item" href="developer.html"><span class="nav-icon">🛠️</span>开发者平台</a>
+    <a class="nav-item" href="settings.html"><span class="nav-icon">⚙️</span>系统设置</a>
+  </div>
+  <div class="sidebar-bottom"><a class="nav-item" href="profile.html"><div class="avatar avatar-sm">A</div><span class="identity-inline">Admin <span class="identity-badge human">人类</span></span></a></div>
+</aside>
+
+<div class="main-area">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:20px">✨</span>
+      <h1 style="font-size:17px;font-weight:600">语言版本中心</h1>
+      <span class="ai-badge">在线</span>
+    </div>
+    <div class="topbar-right">
+      <select class="btn" style="font-size:13px;height:34px">
+        <option>📘 SoulDoc Demo 知识库</option>
+        <option>🔬 技术研发知识库</option>
+        <option>🌐 全局知识库</option>
+      </select>
+      <button class="btn btn-sm" onclick="showToast('新对话已开始','success')">＋ 新对话</button>
+    </div>
+  </div>
+
+  <div class="ai-layout">
+    <!-- Left: Tools + History -->
+    <div class="ai-left">
+      <div class="ai-tool-section">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">AI 工具</div>
+        <button class="tool-btn" onclick="addAiMessage('请帮我生成当前文档的摘要')"><span class="tool-btn-icon">📝</span><div><div style="font-weight:500">生成摘要</div><div style="font-size:12px;color:var(--muted)">为选定文档生成摘要</div></div></button>
+        <button class="tool-btn" onclick="addAiMessage('请为当前文档生成结构化大纲')"><span class="tool-btn-icon">📋</span><div><div style="font-weight:500">生成大纲</div><div style="font-size:12px;color:var(--muted)">AI自动生成文档结构</div></div></button>
+        <button class="tool-btn" onclick="addAiMessage('请从文档内容中提取关键标签')"><span class="tool-btn-icon">🏷️</span><div><div style="font-weight:500">提取标签</div><div style="font-size:12px;color:var(--muted)">自动识别文档关键词</div></div></button>
+        <button class="tool-btn" onclick="addAiMessage('请基于文档内容生成FAQ')"><span class="tool-btn-icon">❓</span><div><div style="font-weight:500">生成 FAQ</div><div style="font-size:12px;color:var(--muted)">常见问题自动生成</div></div></button>
+        <button class="tool-btn" onclick="openModal('translate-modal')"><span class="tool-btn-icon">🌍</span><div><div style="font-weight:500">翻译文档</div><div style="font-size:12px;color:var(--muted)">多语言文档翻译</div></div></button>
+        <button class="tool-btn" onclick="addAiMessage('请对文档进行专业审校，找出语言和逻辑问题')"><span class="tool-btn-icon">🔍</span><div><div style="font-weight:500">AI 审校</div><div style="font-size:12px;color:var(--muted)">语言逻辑全面检查</div></div></button>
+        <button class="tool-btn" onclick="addAiMessage('请检测知识库中有哪些内容缺口')"><span class="tool-btn-icon">📊</span><div><div style="font-weight:500">内容缺口分析</div><div style="font-size:12px;color:var(--muted)">发现知识库不完整处</div></div></button>
+        <button class="tool-btn" onclick="addAiMessage('请生成本周知识库变更摘要报告')"><span class="tool-btn-icon">📈</span><div><div style="font-weight:500">周报生成</div><div style="font-size:12px;color:var(--muted)">自动生成内容变更报告</div></div></button>
+      </div>
+
+      <div class="ai-tool-section">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">对话历史</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="padding:10px;border-radius:8px;background:var(--primary-light);border:1px solid var(--primary-border);cursor:pointer;font-size:13px">
+            <div style="font-weight:500;color:var(--primary);margin-bottom:2px">SoulDoc AI 能力设计</div>
+            <div style="font-size:11.5px;color:var(--muted)">今天 · 8条消息</div>
+          </div>
+          <div style="padding:10px;border-radius:8px;border:1px solid var(--line);cursor:pointer;font-size:13px;transition:var(--transition)" onmouseover="this.style.background='var(--panel3)'" onmouseout="this.style.background=''">
+            <div style="font-weight:500;margin-bottom:2px">API 接口文档审校</div>
+            <div style="font-size:11.5px;color:var(--muted)">昨天 · 5条消息</div>
+          </div>
+          <div style="padding:10px;border-radius:8px;border:1px solid var(--line);cursor:pointer;font-size:13px;transition:var(--transition)" onmouseover="this.style.background='var(--panel3)'" onmouseout="this.style.background=''">
+            <div style="font-weight:500;margin-bottom:2px">数据库设计Q&A</div>
+            <div style="font-size:11.5px;color:var(--muted)">2天前 · 12条消息</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center: Chat -->
+    <div class="ai-center">
+      <div class="ai-chat-area" id="chat-area">
+        <!-- Welcome -->
+        <div style="text-align:center;padding:40px 0 32px">
+          <div style="font-size:48px;margin-bottom:12px">✨</div>
+          <h2 style="font-size:20px;font-weight:700;margin-bottom:8px">SoulDoc 语言版本中心</h2>
+          <p style="color:var(--muted);font-size:14px;max-width:480px;margin:0 auto">基于您的知识库进行语义问答、文档分析和智能辅助。当前加载知识库：<strong>SoulDoc Demo (248文档)</strong></p>
+        </div>
+
+        <!-- Chat Messages -->
+        <div class="chat-messages" id="messages">
+          <div class="chat-msg-wrap" style="align-items:flex-end">
+            <div class="chat-bubble user">SoulDoc 的 AI 工具应该如何设计，参考 moltbook 的 skill 架构？</div>
+            <div style="font-size:11.5px;color:var(--muted);margin-top:4px">Admin · 2分钟前</div>
+          </div>
+
+          <div class="chat-msg-wrap">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+              <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#4f46e5,#2563eb);display:flex;align-items:center;justify-content:center;font-size:14px">✨</div>
+              <span style="font-size:12px;color:var(--muted)">SoulDoc AI · 刚刚</span>
+            </div>
+            <div class="chat-bubble ai">
+              <p>基于对 <strong>moltbook skill.md</strong> 的分析，对比 SoulDoc 的文档管理特性，最佳的 AI 工具配置应分为以下几层：</p>
+              <p><strong>🔍 知识召回工具</strong><br>
+              <code>knowledge_query(space_id, query, top_k)</code> — RAG语义搜索，核心工具，对应 moltbook 的 /search 接口</p>
+              <p><strong>📄 文档读写工具</strong><br>
+              <code>read_doc(doc_id)</code> / <code>update_doc_content(doc_id, content)</code><br>比 moltbook 更丰富，支持树形结构和版本管理</p>
+              <p><strong>🧱 块级操作工具</strong><br>
+              <code>get_blocks(doc_id)</code> / <code>update_block(block_id, content)</code><br>SoulDoc 特有，moltbook 无对应（社交帖子无块结构）</p>
+              <p><strong>✨ AI写作工具</strong><br>
+              <code>generate_summary()</code> / <code>generate_outline()</code> / <code>extract_tags()</code><br>这是 SoulDoc 的核心差异化能力</p>
+              <p><strong>🌐 发布工具</strong><br>
+              <code>publish_doc(doc_id, target)</code> / <code>update_seo(doc_id, meta)</code><br>moltbook 无此概念，SoulDoc 特有</p>
+              <div class="citation">📎 来源：《AI 工具配置》《moltbook skill 分析》</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ai-chat-input-area">
+        <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+          <button class="suggested-q" onclick="addAiMessage('建议的AI工具与moltbook有什么核心区别？')">💡 与moltbook的核心区别？</button>
+          <button class="suggested-q" onclick="addAiMessage('AI工具的权限控制如何设计？')">🔒 AI工具权限设计</button>
+          <button class="suggested-q" onclick="addAiMessage('如何实现RAG知识召回？')">🔍 RAG实现方案</button>
+        </div>
+        <div style="display:flex;gap:10px">
+          <textarea id="chat-input" class="input" style="flex:1;height:52px;resize:none;line-height:1.6" placeholder="问任何关于您知识库的问题... (Enter 发送，Shift+Enter 换行)"></textarea>
+          <button class="btn btn-primary" style="padding:0 18px;align-self:flex-end;height:52px;font-size:16px" onclick="sendMessage()">→</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;margin-top:8px;font-size:12px;color:var(--muted)">
+          <span>⚡ 使用 GPT-4o 模型</span>
+          <span>📚 基于 SoulDoc Demo 知识库</span>
+          <span style="margin-left:auto">Token 剩余：98%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Context -->
+    <div class="ai-right">
+      <div style="padding:14px;border-bottom:1px solid var(--line)">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">📎 上下文文档</div>
+        <div class="context-doc" onclick="location.href='docs.html'">
+          <span style="font-size:18px">📋</span>
+          <div style="flex:1"><div style="font-size:13px;font-weight:500">PRD v2.0</div><div style="font-size:11.5px;color:var(--muted)">当前编辑的文档</div></div>
+          <button class="btn-ghost btn-sm" onclick="event.stopPropagation();showToast('已移除','warning')" style="font-size:16px;padding:2px">✕</button>
+        </div>
+        <div class="context-doc" style="margin-top:8px" onclick="location.href='docs.html'">
+          <span style="font-size:18px">✨</span>
+          <div style="flex:1"><div style="font-size:13px;font-weight:500">AI 工具配置文档</div><div style="font-size:11.5px;color:var(--muted)">相关文档</div></div>
+          <button class="btn-ghost btn-sm" onclick="event.stopPropagation()" style="font-size:16px;padding:2px">✕</button>
+        </div>
+        <button class="btn btn-sm w-full" style="margin-top:10px;justify-content:center" onclick="openModal('add-context-modal')">＋ 添加文档到上下文</button>
+      </div>
+
+      <div style="padding:14px;border-bottom:1px solid var(--line)">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">🔗 引用来源</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <a href="docs.html" class="list-item" style="padding:10px 12px;font-size:13px">
+            <span style="color:var(--primary);font-size:11px;font-weight:700">1</span>
+            <div><div style="font-weight:500">产品需求文档 PRD v2.0</div><div style="font-size:11.5px;color:var(--muted)">第3节 AI能力层级</div></div>
+          </a>
+          <a href="docs.html" class="list-item" style="padding:10px 12px;font-size:13px">
+            <span style="color:var(--primary);font-size:11px;font-weight:700">2</span>
+            <div><div style="font-weight:500">AI 工具配置规范</div><div style="font-size:11.5px;color:var(--muted)">工具函数接口定义</div></div>
+          </a>
+        </div>
+      </div>
+
+      <div style="padding:14px">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">⚙️ AI 设置</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div>
+            <label class="form-label" style="font-size:12px">模型</label>
+            <select class="input select" style="font-size:13px"><option>GPT-4o (推荐)</option><option>Claude 3.5 Sonnet</option><option>本地模型</option></select>
+          </div>
+          <div>
+            <label class="form-label" style="font-size:12px">回答风格</label>
+            <select class="input select" style="font-size:13px"><option>详细专业</option><option>简洁精炼</option><option>技术风格</option></select>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px">
+            <span>引用来源</span><div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px">
+            <span>权限感知</span><div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <button class="btn btn-sm w-full" style="justify-content:center" onclick="location.href='ai-tasks.html'">⚡ AI 任务中心</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Modals -->
+<div class="modal-overlay" id="add-context-modal">
+  <div class="modal">
+    <div class="modal-header"><h3>添加上下文文档</h3><button class="btn-ghost btn-icon" onclick="closeModal('add-context-modal')">✕</button></div>
+    <div class="modal-body">
+      <input class="input" placeholder="搜索文档..." style="margin-bottom:12px">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div class="list-item" style="cursor:pointer" onclick="closeModal('add-context-modal');showToast('已添加到上下文','success')">
+          <span>📋</span><div><div>系统架构设计</div><div class="text-xs text-muted">技术文档</div></div>
+        </div>
+        <div class="list-item" style="cursor:pointer" onclick="closeModal('add-context-modal');showToast('已添加到上下文','success')">
+          <span>🔌</span><div><div>API 接口文档</div><div class="text-xs text-muted">技术文档</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="translate-modal">
+  <div class="modal">
+    <div class="modal-header"><h3>🌍 AI 翻译</h3><button class="btn-ghost btn-icon" onclick="closeModal('translate-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">目标语言</label><select class="input select"><option>English</option><option>日本語</option><option>한국어</option><option>Español</option></select></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('translate-modal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('translate-modal');showToast('翻译任务已创建','success')">开始翻译</button>
+    </div>
+  </div>
+</div>
+
+<script src="nav.js"></script>
+<script>
+function addAiMessage(text) {
+  const input = document.getElementById('chat-input');
+  input.value = text;
+  sendMessage();
+}
+
+function sendMessage() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  const messages = document.getElementById('messages');
+  messages.innerHTML += `<div class="chat-msg-wrap" style="align-items:flex-end">
+    <div class="chat-bubble user">${text}</div>
+    <div style="font-size:11.5px;color:var(--muted);margin-top:4px">Admin · 刚刚</div>
+  </div>
+  <div class="chat-msg-wrap">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#4f46e5,#2563eb);display:flex;align-items:center;justify-content:center;font-size:14px">✨</div>
+      <span style="font-size:12px;color:var(--muted)">SoulDoc AI · 刚刚</span>
+    </div>
+    <div class="chat-bubble ai">
+      <div style="display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px">
+        <div style="width:6px;height:6px;border-radius:50%;background:var(--primary);animation:ai-pulse 1s infinite"></div>
+        AI 正在思考，基于您的知识库检索中...
+      </div>
+    </div>
+  </div>`;
+  input.value = '';
+  document.getElementById('chat-area').scrollTop = 999999;
+}
+
+document.getElementById('chat-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+</script>
+</body>
+</html>

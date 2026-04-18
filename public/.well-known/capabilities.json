@@ -1,0 +1,139 @@
+{
+  "name": "SoulDoc Capabilities",
+  "version": "1.0.0",
+  "base_url": "/api/v1",
+  "families": [
+    {
+      "key": "context",
+      "title": "Context",
+      "actions": [
+        {
+          "key": "context.get",
+          "title": "获取上下文",
+          "method": "GET",
+          "endpoint": "/connectors/docs/:docId/context",
+          "approval_required": false,
+          "async_task": false
+        },
+        {
+          "key": "permission.inspect",
+          "title": "读取权限边界",
+          "method": "GET",
+          "endpoint": "/auth/me",
+          "approval_required": false,
+          "async_task": false
+        }
+      ]
+    },
+    {
+      "key": "knowledge",
+      "title": "Knowledge",
+      "actions": [
+        {
+          "key": "content.list",
+          "title": "列出内容",
+          "method": "GET",
+          "endpoint": "/spaces/:spaceId/docs/tree",
+          "approval_required": false,
+          "async_task": false
+        },
+        {
+          "key": "search.hybrid",
+          "title": "混合检索",
+          "method": "POST",
+          "endpoint": "/search/semantic",
+          "approval_required": false,
+          "async_task": true
+        }
+      ]
+    },
+    {
+      "key": "drafting",
+      "title": "Drafting",
+      "actions": [
+        {
+          "key": "draft.patch",
+          "title": "草稿 Patch",
+          "method": "PUT",
+          "endpoint": "/docs/:docId/content",
+          "approval_required": false,
+          "async_task": false
+        },
+        {
+          "key": "dialogue.capture",
+          "title": "对话转文档",
+          "method": "POST",
+          "endpoint": "/ai/docs/:docId/outline",
+          "approval_required": false,
+          "async_task": true
+        }
+      ]
+    },
+    {
+      "key": "governance",
+      "title": "Governance",
+      "actions": [
+        {
+          "key": "version.snapshot",
+          "title": "创建版本",
+          "method": "POST",
+          "endpoint": "/docs/:docId/save-version",
+          "approval_required": false,
+          "async_task": false
+        },
+        {
+          "key": "change_request.preview",
+          "title": "变更请求预览",
+          "method": "POST",
+          "endpoint": "/docs/:docId/change-requests",
+          "approval_required": true,
+          "async_task": false
+        }
+      ]
+    },
+    {
+      "key": "publishing",
+      "title": "Publishing",
+      "actions": [
+        {
+          "key": "seo.inspect",
+          "title": "SEO 体检",
+          "method": "GET",
+          "endpoint": "/docs/:docId/seo/preview",
+          "approval_required": false,
+          "async_task": false
+        },
+        {
+          "key": "publish.release",
+          "title": "触发发布",
+          "method": "POST",
+          "endpoint": "/publish-targets/:targetId/release",
+          "approval_required": true,
+          "async_task": true
+        }
+      ]
+    },
+    {
+      "key": "connectors",
+      "title": "Connectors",
+      "actions": [
+        {
+          "key": "git.sync",
+          "title": "GitHub 同步",
+          "method": "POST",
+          "endpoint": "/spaces/:spaceId/git-sync/sync",
+          "approval_required": true,
+          "async_task": true
+        },
+        {
+          "key": "webhook.emit",
+          "title": "Webhook 测试与回推",
+          "method": "POST",
+          "endpoint": "/webhooks/:id/test",
+          "approval_required": false,
+          "async_task": true
+        }
+      ]
+    }
+  ]
+}

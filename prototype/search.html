@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>搜索 — SoulDoc</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.search-hero { background:var(--panel);border-bottom:1px solid var(--line);padding:28px 32px; }
+.search-input-wrap { position:relative; max-width:640px; }
+.search-big { width:100%;padding:14px 18px 14px 48px;border:2px solid var(--primary-border);border-radius:var(--radius);font-size:16px;background:var(--panel);color:var(--text);outline:none;box-shadow:0 0 0 4px rgba(79,70,229,.08); }
+.search-big-icon { position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:18px;color:var(--muted); }
+.search-result { display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--line);cursor:pointer;transition:var(--transition); }
+.search-result:hover { background:var(--panel3);margin:0 -16px;padding:16px;border-radius:var(--radius-sm); }
+.search-result-icon { font-size:22px;flex-shrink:0;margin-top:2px; }
+.search-result-main h4 { font-size:15px;font-weight:600;margin-bottom:4px; }
+.search-result-main h4 mark { background:none;color:var(--primary);font-weight:700; }
+.search-result-main p { font-size:13px;color:var(--text2);line-height:1.6; }
+.search-result-main p mark { background:#fef9c3;color:#854d0e;padding:0 2px;border-radius:2px; }
+.search-result-meta { font-size:12px;color:var(--muted);margin-top:6px;display:flex;gap:10px; }
+.search-mode-btn { padding:8px 16px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--panel);color:var(--muted);font-size:13px;cursor:pointer;transition:var(--transition); }
+.search-mode-btn.active { background:var(--primary-light);border-color:var(--primary-border);color:var(--primary);font-weight:500; }
+.semantic-chat { background:linear-gradient(145deg,#1e1b4b,#1e3a5f);border-radius:var(--radius);padding:20px;margin-bottom:20px; }
+</style>
+</head>
+<body>
+<div class="app-layout">
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">SD</div>
+    <div class="brand-text"><h1>SoulDoc</h1><p>AI 原生知识工作台</p></div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">主导航</div>
+    <a class="nav-item" href="index.html"><span class="nav-icon">🏠</span>首页</a>
+    <a class="nav-item" href="spaces.html"><span class="nav-icon">🗂️</span>知识空间</a>
+    <a class="nav-item active" href="search.html"><span class="nav-icon">🔍</span>搜索</a>
+    <a class="nav-item" href="notifications.html"><span class="nav-icon">🔔</span>通知中心 <span class="nav-badge">5</span></a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">当前空间 · SoulDoc Demo</div>
+    <a class="nav-item" href="space.html"><span class="nav-icon">📌</span>空间概览</a>
+    <a class="nav-item" href="docs.html"><span class="nav-icon">📚</span>文档中心</a>
+    <a class="nav-item" href="editor.html"><span class="nav-icon">✏️</span>编辑器</a>
+    <a class="nav-item" href="change-request.html"><span class="nav-icon">🧾</span>变更请求</a>
+    <a class="nav-item" href="members.html"><span class="nav-icon">👥</span>成员权限</a>
+    <a class="nav-item" href="tags.html"><span class="nav-icon">🏷️</span>标签管理</a>
+    <a class="nav-item" href="files.html"><span class="nav-icon">📁</span>文件管理</a>
+    <a class="nav-item" href="seo.html"><span class="nav-icon">🌐</span>发布 & SEO</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">智能与语言</div>
+    <a class="nav-item" href="language.html"><span class="nav-icon">🌍</span>语言版本</a>
+    <a class="nav-item" href="ai-tasks.html"><span class="nav-icon">✨</span>AI 任务中心</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">平台</div>
+    <a class="nav-item" href="developer.html"><span class="nav-icon">🛠️</span>开发者平台</a>
+    <a class="nav-item" href="settings.html"><span class="nav-icon">⚙️</span>系统设置</a>
+  </div>
+  <div class="sidebar-bottom">
+    <a class="nav-item" href="profile.html"><div class="avatar avatar-sm" style="background:var(--gradient)">A</div><span class="identity-inline">Admin <span class="identity-badge human">人类</span></span></a>
+  </div>
+</aside>
+
+<div class="main-area">
+  <!-- Search Hero -->
+  <div class="search-hero">
+    <div style="margin-bottom:16px">
+      <h1 style="font-size:22px;font-weight:700;margin-bottom:4px">🔍 知识搜索</h1>
+      <p style="color:var(--muted);font-size:14px">关键词搜索 + AI 语义搜索双通道</p>
+    </div>
+    <div class="search-input-wrap" style="margin-bottom:14px">
+      <span class="search-big-icon">🔍</span>
+      <input class="search-big" id="main-search" value="AI 能力设计" oninput="updateResults(this.value)" placeholder="搜索文档、标签、成员...">
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="search-mode-btn active" id="mode-keyword" onclick="switchMode('keyword')">🔤 关键词搜索</button>
+      <button class="search-mode-btn" id="mode-semantic" onclick="switchMode('semantic')">✨ 语义搜索 (AI)</button>
+      <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+        <select class="btn" style="font-size:13px;height:34px">
+          <option>全部语言</option><option>仅当前语言</option><option>跨语言召回</option>
+        </select>
+        <select class="btn" style="font-size:13px;height:34px">
+          <option>全部空间</option><option>SoulDoc Demo</option><option>技术研发</option>
+        </select>
+        <select class="btn" style="font-size:13px;height:34px">
+          <option>全部类型</option><option>文档</option><option>标签</option><option>成员</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 280px;gap:0;flex:1">
+    <!-- Results -->
+    <div style="padding:24px 28px;border-right:1px solid var(--line);overflow-y:auto">
+      <!-- Semantic Mode -->
+      <div id="semantic-panel" style="display:none;margin-bottom:24px">
+        <div class="semantic-chat">
+          <div style="color:#fff;font-size:14px;font-weight:600;margin-bottom:12px">✨ AI 语义问答</div>
+          <div class="chat-messages" style="margin-bottom:14px">
+            <div class="chat-msg-wrap">
+              <div class="chat-bubble user">SoulDoc 的 AI 能力分为哪几个层级？</div>
+            </div>
+            <div class="chat-msg-wrap">
+              <div class="chat-bubble ai">
+                SoulDoc 的 AI 能力设计分为 <strong>5 个层级</strong>：<br>
+                <strong>L1 辅助写作</strong>：摘要、润色、改写<br>
+                <strong>L2 知识结构化</strong>：大纲、标签提取、FAQ<br>
+                <strong>L3 协作生产</strong>：多用户协作工作流<br>
+                <strong>L4 知识检索增强(RAG)</strong>：语义问答、引用回显<br>
+                <strong>L5 自动化运营</strong>：SEO优化、陈旧内容监控
+                <div class="citation">📎 来源：《产品需求文档 PRD v2.0》第3节</div>
+              </div>
+            </div>
+          </div>
+          <div class="surface-note" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);color:#e2e8f0;margin-bottom:14px">
+            当前语义模式已启用跨语言召回：先检索 `zh-CN`，再补充 `en-US / ja-JP` 结果，并在目标语言缺失时回退到默认语言版本。
+          </div>
+          <div style="display:flex;gap:8px">
+            <input class="input" style="flex:1;background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);color:#fff" placeholder="继续提问...">
+            <button class="btn btn-sm btn-primary" onclick="showToast('AI正在思考...','default')">发送</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div id="results-stats" style="font-size:13px;color:var(--muted);margin-bottom:16px">
+        找到 <strong style="color:var(--text)">24</strong> 个结果，耗时 42ms
+        <span style="margin-left:8px">· 搜索词：<strong style="color:var(--primary)">"AI 能力设计"</strong></span>
+      </div>
+
+      <!-- Results List -->
+      <div id="results-list">
+        <div class="search-result" onclick="location.href='docs.html'">
+          <div class="search-result-icon">📋</div>
+          <div class="search-result-main" style="flex:1">
+            <h4>产品需求文档 PRD v2.0 — <mark>AI 能力</mark>设计</h4>
+            <p>...SoulDoc 的 <mark>AI 能力</mark>分为 5 个层级，从辅助写作到自动化运营。<mark>AI 能力设计</mark>的核心目标是让内容生产从"手动为主"转变为"AI辅助为主"...</p>
+            <div class="search-result-meta">
+              <span>📂 SoulDoc Demo / 产品设计</span>
+              <span>✏️ 8分钟前</span>
+              <span class="badge badge-warning" style="font-size:11px">草稿</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="search-result" onclick="location.href='docs.html'">
+          <div class="search-result-icon">✨</div>
+          <div class="search-result-main" style="flex:1">
+            <h4><mark>AI 能力设计</mark>规范 — AI操作层功能设计</h4>
+            <p>...让 AI 成为文档管理的主力军。本文描述了 <mark>AI 能力</mark>层的技术实现方案，包括工具调用接口定义、异步任务管理和权限控制...</p>
+            <div class="search-result-meta">
+              <span>📂 SoulDoc Demo / AI 能力设计</span>
+              <span>✏️ 2天前</span>
+              <span class="badge badge-success" style="font-size:11px">已发布</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="search-result" onclick="location.href='language.html'">
+          <div class="search-result-icon">🤖</div>
+          <div class="search-result-main" style="flex:1">
+            <h4>AI 工具配置最佳实践 — 重新思考<mark>AI 能力</mark>边界</h4>
+            <p>...本文从 moltbook skill 架构出发，对比分析了 SoulDoc 的 AI 工具最优配置方案。<mark>AI 能力设计</mark>的最佳实践是以工具函数为基本单元...</p>
+            <div class="search-result-meta">
+              <span>📂 SoulDoc Demo / AI 能力设计</span>
+              <span>✏️ 1天前</span>
+              <span class="badge badge-primary" style="font-size:11px">审核中</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="search-result" onclick="location.href='docs.html'">
+          <div class="search-result-icon">🔌</div>
+          <div class="search-result-main" style="flex:1">
+            <h4>AI 用户接入文档 — OpenClaw <mark>AI</mark> 接口对接</h4>
+            <p>...通过统一的工具服务提供知识召回接口，<mark>AI 能力</mark>的调用需要通过标准化的工具函数接口，确保权限隔离和结果可追踪...</p>
+            <div class="search-result-meta">
+              <span>📂 SoulDoc Demo / AI 能力设计</span>
+              <span>✏️ 3天前</span>
+              <span class="badge badge-success" style="font-size:11px">已发布</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="search-result" onclick="location.href='docs.html'">
+          <div class="search-result-icon">🔒</div>
+          <div class="search-result-main" style="flex:1">
+            <h4>权限与角色体系设计 — <mark>AI</mark> 用户权限</h4>
+            <p>...AI 用户与人类用户共用同一套角色定义，其权限需要在空间级别进行配置。<mark>AI 能力</mark>的权限码包括 ai.generate, ai.review, ai.translate...</p>
+            <div class="search-result-meta">
+              <span>📂 SoulDoc Demo / 技术文档</span>
+              <span>✏️ 4天前</span>
+              <span class="badge badge-success" style="font-size:11px">已发布</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:24px">
+        <button class="btn btn-sm" disabled>←</button>
+        <button class="btn btn-sm active" style="background:var(--primary);color:#fff;border:none" onclick="showToast('当前为第 1 页','default')">1</button>
+        <button class="btn btn-sm" onclick="showToast('已切换到第 2 页（原型数据未翻页）','default')">2</button>
+        <button class="btn btn-sm" onclick="showToast('已切换到第 3 页（原型数据未翻页）','default')">3</button>
+        <button class="btn btn-sm" onclick="showToast('下一页结果待接入','default')">→</button>
+      </div>
+    </div>
+
+    <!-- Right Sidebar -->
+    <div style="padding:20px;overflow-y:auto">
+      <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px">筛选条件</div>
+      <div class="form-group">
+        <label class="form-label" style="font-size:12px">时间范围</label>
+        <select class="input select" style="font-size:13px">
+          <option>全部时间</option><option>今天</option><option>本周</option><option>本月</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" style="font-size:12px">文档状态</label>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" checked style="accent-color:var(--primary)"> 已发布</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" checked style="accent-color:var(--primary)"> 草稿</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" style="accent-color:var(--primary)"> 归档</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" style="font-size:12px">标签筛选</label>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <div class="tag" style="font-size:11.5px;cursor:pointer;border-color:var(--primary);color:var(--primary);background:var(--primary-light)">AI原生</div>
+          <div class="tag" style="font-size:11.5px;cursor:pointer">产品设计</div>
+          <div class="tag" style="font-size:11.5px;cursor:pointer">技术规范</div>
+          <div class="tag" style="font-size:11.5px;cursor:pointer">架构设计</div>
+        </div>
+      </div>
+
+      <div class="surface-note" style="margin-bottom:12px">
+        <div style="font-size:12px;font-weight:600;margin-bottom:8px">🌐 跨语言检索</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.7">关键词检索默认按当前语言过滤；语义检索会优先返回当前语言，再补充同一 `doc_group_id` 下的其他 locale 结果。</div>
+      </div>
+
+      <div class="surface-note" style="margin-bottom:12px">
+        <div style="font-size:12px;font-weight:600;margin-bottom:8px">↩︎ 回退规则</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.7">当目标语言缺失时，阅读端回退到默认语言；搜索结果会明确标记来源语言，避免把回退内容误当作当前语言正文。</div>
+      </div>
+
+      <div style="border-top:1px solid var(--line);padding-top:16px;margin-top:8px">
+        <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px">🔥 热门搜索</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <a href="#" class="tag" style="font-size:12.5px" onclick="document.getElementById('main-search').value='API 接口设计';updateResults('API 接口设计')">API 接口设计</a>
+          <a href="#" class="tag" style="font-size:12.5px" onclick="document.getElementById('main-search').value='权限设计';updateResults('权限设计')">权限设计</a>
+          <a href="#" class="tag" style="font-size:12.5px" onclick="document.getElementById('main-search').value='SurrealDB';updateResults('SurrealDB')">SurrealDB</a>
+          <a href="#" class="tag" style="font-size:12.5px" onclick="document.getElementById('main-search').value='向量检索';updateResults('向量检索')">向量检索</a>
+          <a href="#" class="tag" style="font-size:12.5px" onclick="document.getElementById('main-search').value='SEO 配置';updateResults('SEO 配置')">SEO 配置</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script src="nav.js"></script>
+<script>
+function switchMode(mode) {
+  document.getElementById('mode-keyword').classList.toggle('active', mode === 'keyword');
+  document.getElementById('mode-semantic').classList.toggle('active', mode === 'semantic');
+  document.getElementById('semantic-panel').style.display = mode === 'semantic' ? 'block' : 'none';
+}
+function updateResults(val) {
+  document.getElementById('results-stats').innerHTML = val
+    ? `找到 <strong style="color:var(--text)">${Math.floor(Math.random()*30)+5}</strong> 个结果，耗时 ${Math.floor(Math.random()*80)+20}ms · 搜索词：<strong style="color:var(--primary)">"${val}"</strong>`
+    : '请输入搜索关键词';
+}
+</script>
+</body>
+</html>

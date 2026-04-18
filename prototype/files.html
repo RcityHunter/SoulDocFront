@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文件管理 — SoulDoc</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.files-layout { display:flex; height:calc(100vh - var(--topbar-h)); overflow:hidden; }
+.files-sidebar { width:220px; flex-shrink:0; border-right:1px solid var(--border); background:var(--panel); padding:16px; overflow-y:auto; }
+.files-main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+.files-toolbar { display:flex; flex-direction:column; align-items:stretch; gap:12px; padding:16px 20px; border-bottom:1px solid var(--border); background:var(--panel); }
+.files-toolbar-controls { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.files-content { flex:1; overflow-y:auto; padding:20px; }
+.file-nav-item { padding:7px 10px; border-radius:8px; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:8px; color:var(--muted); transition:all .15s; }
+.file-nav-item:hover, .file-nav-item.active { background:var(--bg); color:var(--text); }
+.file-nav-section { font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; padding:8px 10px 4px; margin-top:8px; }
+.storage-bar { margin-top:16px; padding:12px; background:var(--bg); border-radius:10px; }
+.storage-bar h5 { font-size:12px; font-weight:600; color:var(--text); margin-bottom:6px; }
+.storage-bar .sb-track { height:6px; background:#e5e7eb; border-radius:3px; overflow:hidden; }
+.storage-bar .sb-fill { height:100%; border-radius:3px; background:var(--gradient); }
+.storage-bar .sb-meta { font-size:11px; color:var(--muted); margin-top:4px; display:flex; justify-content:space-between; }
+/* Upload zone */
+.upload-zone { border:2px dashed var(--border); border-radius:var(--radius); padding:40px; text-align:center; background:var(--bg); transition:all .2s; cursor:pointer; margin-bottom:20px; }
+.upload-zone:hover, .upload-zone.drag-over { border-color:var(--primary); background:#ede9fe20; }
+.upload-zone .uz-icon { font-size:40px; margin-bottom:12px; }
+.upload-zone h3 { font-size:15px; font-weight:700; color:var(--text); margin-bottom:6px; }
+.upload-zone p { font-size:13px; color:var(--muted); }
+/* File grid */
+.file-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:14px; }
+.file-card { background:var(--panel); border-radius:var(--radius); border:1px solid var(--border); padding:14px; text-align:center; cursor:pointer; transition:all .15s; position:relative; }
+.file-card:hover { box-shadow:var(--shadow-md); transform:translateY(-2px); }
+.file-card.selected { border-color:var(--primary); background:#ede9fe10; }
+.file-card .fc-thumb { width:64px; height:64px; border-radius:10px; margin:0 auto 10px; display:flex; align-items:center; justify-content:center; font-size:32px; }
+.file-card .fc-name { font-size:12px; font-weight:600; color:var(--text); line-height:1.3; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.file-card .fc-meta { font-size:11px; color:var(--muted); margin-top:4px; }
+.file-card .fc-check { position:absolute; top:8px; right:8px; width:18px; height:18px; border-radius:50%; border:2px solid var(--border); background:#fff; display:flex; align-items:center; justify-content:center; font-size:10px; }
+.file-card.selected .fc-check { background:var(--primary); border-color:var(--primary); color:#fff; }
+/* File list view */
+.file-list-row { display:grid; grid-template-columns:auto 1fr auto auto auto auto; gap:12px; align-items:center; padding:10px 16px; border-bottom:1px solid var(--border); transition:background .15s; cursor:pointer; }
+.file-list-row:hover { background:var(--bg); }
+.file-list-row.selected { background:#ede9fe10; }
+.fl-icon { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:16px; }
+.fl-actions { display:flex; gap:4px; opacity:0; }
+.file-list-row:hover .fl-actions { opacity:1; }
+/* Path bar */
+.path-bar { display:flex; align-items:center; gap:6px; padding:0 20px 14px; }
+.path-bar span { font-size:12px; color:var(--muted); }
+.path-bar a { font-size:12px; color:var(--primary); text-decoration:none; }
+.path-bar .sep { color:#d1d5db; }
+.files-toolbar .path-bar { padding:0; flex-wrap:nowrap; min-width:0; }
+.files-toolbar .path-bar a,
+.files-toolbar .path-bar span { white-space:nowrap; }
+/* Type filter chips */
+.type-chips { display:flex; gap:8px; flex-wrap:wrap; flex:1; min-width:280px; }
+.type-chip { padding:6px 12px; border-radius:16px; font-size:12px; font-weight:600; cursor:pointer; border:1px solid var(--border); background:#fff; color:var(--muted); }
+.type-chip.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+.files-sort { font-size:12px; padding:6px 10px; border:1px solid var(--border); border-radius:8px; background:#fff; min-width:104px; }
+.files-search { width:180px; min-width:180px; }
+/* Preview panel */
+.preview-panel { width:280px; flex-shrink:0; border-left:1px solid var(--border); background:var(--panel); overflow-y:auto; padding:20px; display:none; }
+.preview-panel.open { display:block; }
+.preview-img { width:100%; height:140px; border-radius:10px; background:linear-gradient(135deg,#ede9fe,#dbeafe); display:flex; align-items:center; justify-content:center; font-size:48px; margin-bottom:16px; }
+.preview-meta-row { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); font-size:12px; }
+.preview-meta-row:last-child { border-bottom:none; }
+.preview-meta-row .pmr-label { color:var(--muted); }
+.preview-meta-row .pmr-val { font-weight:600; color:var(--text); }
+</style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">SD</div>
+    <div class="brand-text"><h1>SoulDoc</h1><p>AI 原生知识工作台</p></div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">主导航</div>
+    <a class="nav-item" href="index.html"><span class="nav-icon">🏠</span>首页</a>
+    <a class="nav-item" href="spaces.html"><span class="nav-icon">🗂️</span>知识空间</a>
+    <a class="nav-item" href="search.html"><span class="nav-icon">🔍</span>搜索</a>
+    <a class="nav-item" href="notifications.html"><span class="nav-icon">🔔</span>通知中心 <span class="nav-badge">5</span></a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">当前空间 · SoulDoc Demo</div>
+    <a class="nav-item" href="space.html"><span class="nav-icon">📌</span>空间概览</a>
+    <a class="nav-item" href="docs.html"><span class="nav-icon">📚</span>文档中心</a>
+    <a class="nav-item" href="editor.html"><span class="nav-icon">✏️</span>编辑器</a>
+    <a class="nav-item" href="change-request.html"><span class="nav-icon">🧾</span>变更请求</a>
+    <a class="nav-item" href="members.html"><span class="nav-icon">👥</span>成员权限</a>
+    <a class="nav-item" href="tags.html"><span class="nav-icon">🏷️</span>标签管理</a>
+    <a class="nav-item active" href="files.html"><span class="nav-icon">📁</span>文件管理</a>
+    <a class="nav-item" href="seo.html"><span class="nav-icon">🌐</span>发布 & SEO</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">智能与语言</div>
+    <a class="nav-item" href="language.html"><span class="nav-icon">🌍</span>语言版本</a>
+    <a class="nav-item" href="ai-tasks.html"><span class="nav-icon">✨</span>AI 任务中心</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">平台</div>
+    <a class="nav-item" href="developer.html"><span class="nav-icon">🛠️</span>开发者平台</a>
+    <a class="nav-item" href="settings.html"><span class="nav-icon">⚙️</span>系统设置</a>
+  </div>
+  <div class="sidebar-bottom">
+    <a class="nav-item" href="profile.html"><div class="avatar avatar-sm" style="background:var(--gradient)">A</div><span class="identity-inline">Admin <span class="identity-badge human">人类</span></span></a>
+  </div>
+</aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-left">
+        <h2 style="font-size:16px;font-weight:700;color:var(--text);">◈ 文件管理</h2>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-ghost btn-sm" id="view-toggle" onclick="toggleView()">⊞ 网格视图</button>
+        <button class="btn btn-primary btn-sm" onclick="triggerUpload()">↑ 上传文件</button>
+        <div class="avatar" title="当前用户">U</div>
+      </div>
+    </header>
+
+    <div class="files-layout">
+      <!-- Left sidebar -->
+      <div class="files-sidebar">
+        <div class="file-nav-section">快速访问</div>
+        <div class="file-nav-item active" onclick="setCategory(this,'all')">📁 全部文件</div>
+        <div class="file-nav-item" onclick="setCategory(this,'recent')">🕐 最近上传</div>
+        <div class="file-nav-item" onclick="setCategory(this,'mine')">👤 我上传的</div>
+        <div class="file-nav-item" onclick="setCategory(this,'shared')">🔗 被引用的</div>
+
+        <div class="file-nav-section">文件类型</div>
+        <div class="file-nav-item" onclick="setCategory(this,'image')">🖼 图片</div>
+        <div class="file-nav-item" onclick="setCategory(this,'doc')">📄 文档</div>
+        <div class="file-nav-item" onclick="setCategory(this,'video')">🎬 视频</div>
+        <div class="file-nav-item" onclick="setCategory(this,'code')">💾 代码</div>
+        <div class="file-nav-item" onclick="setCategory(this,'archive')">📦 压缩包</div>
+
+        <div class="file-nav-section">空间</div>
+        <div class="file-nav-item" onclick="setCategory(this,'space1')">◫ SoulDoc 产品</div>
+        <div class="file-nav-item" onclick="setCategory(this,'space2')">◫ 工程技术</div>
+        <div class="file-nav-item" onclick="setCategory(this,'space3')">◫ 市场营销</div>
+
+        <!-- Storage bar -->
+        <div class="storage-bar">
+          <h5>存储用量</h5>
+          <div class="sb-track"><div class="sb-fill" style="width:34%;"></div></div>
+          <div class="sb-meta">
+            <span>3.4 GB</span>
+            <span>/ 10 GB</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main content -->
+      <div class="files-main">
+        <div class="files-toolbar">
+          <div class="path-bar">
+            <a href="files.html">文件</a>
+            <span class="sep">›</span>
+            <span>全部文件</span>
+          </div>
+          <div class="files-toolbar-controls">
+            <div class="type-chips">
+              <span class="type-chip active" onclick="filterType(this,'all')">全部</span>
+              <span class="type-chip" onclick="filterType(this,'image')">🖼 图片</span>
+              <span class="type-chip" onclick="filterType(this,'doc')">📄 文档</span>
+              <span class="type-chip" onclick="filterType(this,'video')">🎬 视频</span>
+              <span class="type-chip" onclick="filterType(this,'other')">其他</span>
+            </div>
+            <select class="files-sort">
+              <option>最近上传</option>
+              <option>按名称</option>
+              <option>按大小</option>
+              <option>按类型</option>
+            </select>
+            <input class="form-input files-search" placeholder="搜索文件..."/>
+          </div>
+        </div>
+
+        <div class="files-content" id="files-content">
+          <!-- Selection bar (hidden by default) -->
+          <div id="selection-bar" style="display:none;background:var(--primary);color:#fff;padding:10px 16px;border-radius:10px;margin-bottom:14px;display:flex;align-items:center;gap:12px;font-size:13px;">
+            <span id="selection-count">0 个文件已选</span>
+            <div style="flex:1;"></div>
+            <button class="btn btn-sm" style="background:rgba(255,255,255,.2);color:#fff;border:none;" onclick="downloadSelected()">↓ 下载</button>
+            <button class="btn btn-sm" style="background:rgba(255,255,255,.2);color:#fff;border:none;" onclick="deleteSelected()">✕ 删除</button>
+            <button class="btn btn-sm" style="background:rgba(255,255,255,.2);color:#fff;border:none;" onclick="clearSelection()">取消选择</button>
+          </div>
+
+          <!-- Upload zone -->
+          <div class="upload-zone" id="upload-zone" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleDrop(event)" onclick="triggerUpload()">
+            <div class="uz-icon">☁</div>
+            <h3>拖拽文件到这里，或点击上传</h3>
+            <p>支持 PNG、JPG、PDF、MP4、ZIP 等，单文件最大 100MB</p>
+            <button class="btn btn-primary" style="margin-top:12px;" onclick="event.stopPropagation();triggerUpload()">选择文件</button>
+          </div>
+
+          <!-- Grid view -->
+          <div id="grid-view" class="file-grid">
+            <div class="file-card" onclick="selectFile(this,'design-mockup.png')">
+              <div class="fc-check">✓</div>
+              <div class="fc-thumb" style="background:#ede9fe;">🖼</div>
+              <div class="fc-name">design-mockup.png</div>
+              <div class="fc-meta">2.3 MB · 昨天</div>
+            </div>
+            <div class="file-card" onclick="selectFile(this,'api-spec.pdf')">
+              <div class="fc-check">✓</div>
+              <div class="fc-thumb" style="background:#fef2f2;">📄</div>
+              <div class="fc-name">api-spec.pdf</div>
+              <div class="fc-meta">856 KB · 昨天</div>
+            </div>
+            <div class="file-card" onclick="selectFile(this,'product-demo.mp4')">
+              <div class="fc-check">✓</div>
+              <div class="fc-thumb" style="background:#f0f9ff;">🎬</div>
+              <div class="fc-name">product-demo.mp4</div>
+              <div class="fc-meta">124 MB · 3天前</div>
+            </div>
+            <div class="file-card" onclick="selectFile(this,'data-model.xlsx')">
+              <div class="fc-check">✓</div>
+              <div class="fc-thumb" style="background:#f0fdf4;">📊</div>
+              <div class="fc-name">data-model.xlsx</div>
+              <div class="fc-meta">342 KB · 4天前</div>
+            </div>
+            <div class="file-card" onclick="selectFile(this,'architecture.png')">
+              <div class="fc-check">✓</div>
+              <div class="fc-thumb" style="background:#ede9fe;">🖼</div>
+              <div class="fc-name">architecture.png</div>
+              <div class="fc-meta">1.8 MB · 5天前</div>
+            </div>
+            <div class="file-card" onclick="selectFile(this,'souldoc-v3.zip')">
+              <div class="fc-check">✓</div>
+              <div class="fc-thumb" style="background:#fef3c7;">📦</div>
+              <div class="fc-name">souldoc-v3.zip</div>
+              <div class="fc-meta">8.4 MB · 1周前</div>
+            </div>
+            <div class="file-card" onclick="selectFile(this,'logo-full.svg')">
+              <div class="fc-check">✓</div>
+              <div class="fc-thumb" style="background:#ecfdf5;">🎨</div>
+              <div class="fc-name">logo-full.svg</div>
+              <div class="fc-meta">24 KB · 1周前</div>
+            </div>
+            <div class="file-card" onclick="selectFile(this,'user-research.pdf')">
+              <div class="fc-check">✓</div>
+              <div class="fc-thumb" style="background:#fef2f2;">📄</div>
+              <div class="fc-name">user-research.pdf</div>
+              <div class="fc-meta">2.1 MB · 2周前</div>
+            </div>
+            <div class="file-card" onclick="selectFile(this,'onboarding-video.mp4')">
+              <div class="fc-check">✓</div>
+              <div class="fc-thumb" style="background:#f0f9ff;">🎬</div>
+              <div class="fc-name">onboarding-video.mp4</div>
+              <div class="fc-meta">256 MB · 2周前</div>
+            </div>
+            <div class="file-card" onclick="selectFile(this,'db-schema.sql')">
+              <div class="fc-check">✓</div>
+              <div class="fc-thumb" style="background:#fdf4ff;">💾</div>
+              <div class="fc-name">db-schema.sql</div>
+              <div class="fc-meta">48 KB · 3周前</div>
+            </div>
+            <div class="file-card" onclick="selectFile(this,'brand-guide.pdf')">
+              <div class="fc-check">✓</div>
+              <div class="fc-thumb" style="background:#fef2f2;">📄</div>
+              <div class="fc-name">brand-guide.pdf</div>
+              <div class="fc-meta">4.2 MB · 1月前</div>
+            </div>
+            <div class="file-card" onclick="selectFile(this,'icon-pack.zip')">
+              <div class="fc-check">✓</div>
+              <div class="fc-thumb" style="background:#fef3c7;">📦</div>
+              <div class="fc-name">icon-pack.zip</div>
+              <div class="fc-meta">1.2 MB · 1月前</div>
+            </div>
+          </div>
+
+          <!-- List view (hidden) -->
+          <div id="list-view" style="display:none;background:var(--panel);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;">
+            <div class="file-list-row" style="background:var(--bg);font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;">
+              <div></div><div>文件名</div><div>大小</div><div>类型</div><div>上传者</div><div></div>
+            </div>
+            <div class="file-list-row" onclick="selectFileList(this,'design-mockup.png')">
+              <div class="fl-icon" style="background:#ede9fe;">🖼</div>
+              <div>
+                <div style="font-size:13px;font-weight:600;color:var(--text);">design-mockup.png</div>
+                <div style="font-size:11px;color:var(--muted);">昨天 14:32</div>
+              </div>
+              <div style="font-size:12px;color:var(--muted);">2.3 MB</div>
+              <div><span class="badge badge-info" style="font-size:10px;">图片</span></div>
+              <div style="font-size:12px;color:var(--muted);">张磊</div>
+              <div class="fl-actions">
+                <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();showToast('已复制链接','success')">🔗</button>
+                <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();showToast('下载中...','info')">↓</button>
+                <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();">✕</button>
+              </div>
+            </div>
+            <div class="file-list-row" onclick="selectFileList(this,'api-spec.pdf')">
+              <div class="fl-icon" style="background:#fef2f2;">📄</div>
+              <div>
+                <div style="font-size:13px;font-weight:600;color:var(--text);">api-spec.pdf</div>
+                <div style="font-size:11px;color:var(--muted);">昨天 11:20</div>
+              </div>
+              <div style="font-size:12px;color:var(--muted);">856 KB</div>
+              <div><span class="badge badge-warning" style="font-size:10px;">PDF</span></div>
+              <div style="font-size:12px;color:var(--muted);"><span class="identity-inline">李明 <span class="identity-badge human">人类</span></span></div>
+              <div class="fl-actions">
+                <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();showToast('已复制链接','success')">🔗</button>
+                <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();">↓</button>
+                <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();">✕</button>
+              </div>
+            </div>
+            <div class="file-list-row" onclick="selectFileList(this,'product-demo.mp4')">
+              <div class="fl-icon" style="background:#f0f9ff;">🎬</div>
+              <div>
+                <div style="font-size:13px;font-weight:600;color:var(--text);">product-demo.mp4</div>
+                <div style="font-size:11px;color:var(--muted);">3天前</div>
+              </div>
+              <div style="font-size:12px;color:var(--muted);">124 MB</div>
+              <div><span class="badge badge-purple" style="font-size:10px;">视频</span></div>
+              <div style="font-size:12px;color:var(--muted);"><span class="identity-inline">王芳 <span class="identity-badge human">人类</span></span></div>
+              <div class="fl-actions">
+                <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();showToast('已复制链接','success')">🔗</button>
+                <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();">↓</button>
+                <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();">✕</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview panel -->
+      <div class="preview-panel" id="preview-panel">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <h4 style="font-size:14px;font-weight:700;color:var(--text);">文件预览</h4>
+          <button style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--muted);" onclick="closePreview()">✕</button>
+        </div>
+        <div class="preview-img" id="preview-thumb">🖼</div>
+        <h4 id="preview-name" style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;word-break:break-all;">design-mockup.png</h4>
+        <div id="preview-metas">
+          <div class="preview-meta-row"><span class="pmr-label">文件大小</span><span class="pmr-val">2.3 MB</span></div>
+          <div class="preview-meta-row"><span class="pmr-label">文件类型</span><span class="pmr-val">PNG 图片</span></div>
+          <div class="preview-meta-row"><span class="pmr-label">上传者</span><span class="pmr-val">张磊</span></div>
+          <div class="preview-meta-row"><span class="pmr-label">上传时间</span><span class="pmr-val">昨天 14:32</span></div>
+          <div class="preview-meta-row"><span class="pmr-label">引用次数</span><span class="pmr-val">3 篇文档</span></div>
+          <div class="preview-meta-row"><span class="pmr-label">空间</span><span class="pmr-val">SoulDoc 产品</span></div>
+        </div>
+        <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px;">
+          <button class="btn btn-primary" onclick="showToast('已复制文件链接','success')">🔗 复制链接</button>
+          <button class="btn btn-ghost" onclick="showToast('下载中...','info')">↓ 下载文件</button>
+          <button class="btn btn-ghost" onclick="showToast('已插入到文档','success')">+ 插入到文档</button>
+          <button class="btn btn-danger" onclick="closePreview();showToast('文件已删除','success')">✕ 删除文件</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="nav.js"></script>
+<script>
+let isGridView = true;
+let selectedFiles = new Set();
+
+function toggleView() {
+  isGridView = !isGridView;
+  document.getElementById('grid-view').style.display = isGridView ? 'grid' : 'none';
+  document.getElementById('list-view').style.display = isGridView ? 'none' : 'block';
+  document.getElementById('view-toggle').textContent = isGridView ? '⊞ 网格视图' : '≡ 列表视图';
+}
+
+function selectFile(card, name) {
+  if (card.classList.contains('selected')) {
+    card.classList.remove('selected');
+    selectedFiles.delete(name);
+  } else {
+    card.classList.add('selected');
+    selectedFiles.add(name);
+    openPreview(name);
+  }
+  updateSelectionBar();
+}
+
+function selectFileList(row, name) {
+  document.querySelectorAll('.file-list-row').forEach(r => r.classList.remove('selected'));
+  row.classList.add('selected');
+  openPreview(name);
+}
+
+function openPreview(name) {
+  document.getElementById('preview-name').textContent = name;
+  document.getElementById('preview-panel').classList.add('open');
+}
+
+function closePreview() {
+  document.getElementById('preview-panel').classList.remove('open');
+}
+
+function updateSelectionBar() {
+  const bar = document.getElementById('selection-bar');
+  const count = document.getElementById('selection-count');
+  if (selectedFiles.size > 0) {
+    bar.style.display = 'flex';
+    count.textContent = selectedFiles.size + ' 个文件已选';
+  } else {
+    bar.style.display = 'none';
+  }
+}
+
+function clearSelection() {
+  document.querySelectorAll('.file-card').forEach(c => c.classList.remove('selected'));
+  selectedFiles.clear();
+  updateSelectionBar();
+}
+
+function downloadSelected() {
+  showToast('正在下载 ' + selectedFiles.size + ' 个文件...', 'info');
+}
+
+function deleteSelected() {
+  if (confirm('确认删除 ' + selectedFiles.size + ' 个文件？')) {
+    showToast('已删除 ' + selectedFiles.size + ' 个文件', 'success');
+    clearSelection();
+  }
+}
+
+function setCategory(el, cat) {
+  document.querySelectorAll('.file-nav-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function filterType(chip, type) {
+  document.querySelectorAll('.type-chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+}
+
+function triggerUpload() {
+  showToast('请选择要上传的文件', 'info');
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  const zone = document.getElementById('upload-zone');
+  zone.classList.remove('drag-over');
+  const files = e.dataTransfer.files;
+  showToast('正在上传 ' + files.length + ' 个文件...', 'info');
+}
+</script>
+</body>
+</html>

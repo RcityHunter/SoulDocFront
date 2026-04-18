@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文档中心 — SoulDoc</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.docs-layout { display:grid; grid-template-columns:260px 1fr 280px; flex:1; min-height:calc(100vh - 62px); }
+.doc-sidebar { border-right:1px solid var(--line); padding:0; background:var(--panel); overflow-y:auto; }
+.doc-sidebar-top { padding:14px 12px; border-bottom:1px solid var(--line); }
+.doc-center { overflow-y:auto; background:var(--panel2); }
+.doc-right { border-left:1px solid var(--line); background:var(--panel); overflow-y:auto; }
+.doc-content-area { max-width:740px; margin:0 auto; padding:32px 36px; }
+.doc-status-bar { display:flex;align-items:center;gap:8px;padding:10px 20px;background:var(--panel);border-bottom:1px solid var(--line);font-size:12.5px;color:var(--muted); }
+.tree-folder { font-weight:600;color:var(--text2);padding:8px 10px;font-size:13px;display:flex;align-items:center;gap:7px;cursor:pointer; }
+.tree-folder:hover { background:var(--panel3); }
+.tree-children-area { padding-left:12px; }
+.doc-right-section { padding:16px;border-bottom:1px solid var(--line); }
+</style>
+</head>
+<body>
+<div class="app-layout">
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">SD</div>
+    <div class="brand-text"><h1>SoulDoc</h1><p>AI 原生知识工作台</p></div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">主导航</div>
+    <a class="nav-item" href="index.html"><span class="nav-icon">🏠</span>首页</a>
+    <a class="nav-item" href="spaces.html"><span class="nav-icon">🗂️</span>知识空间</a>
+    <a class="nav-item" href="search.html"><span class="nav-icon">🔍</span>搜索</a>
+    <a class="nav-item" href="notifications.html"><span class="nav-icon">🔔</span>通知中心 <span class="nav-badge">5</span></a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">当前空间 · SoulDoc Demo</div>
+    <a class="nav-item" href="space.html"><span class="nav-icon">📌</span>空间概览</a>
+    <a class="nav-item active" href="docs.html"><span class="nav-icon">📚</span>文档中心</a>
+    <a class="nav-item" href="editor.html"><span class="nav-icon">✏️</span>编辑器</a>
+    <a class="nav-item" href="change-request.html"><span class="nav-icon">🧾</span>变更请求</a>
+    <a class="nav-item" href="members.html"><span class="nav-icon">👥</span>成员权限</a>
+    <a class="nav-item" href="tags.html"><span class="nav-icon">🏷️</span>标签管理</a>
+    <a class="nav-item" href="files.html"><span class="nav-icon">📁</span>文件管理</a>
+    <a class="nav-item" href="seo.html"><span class="nav-icon">🌐</span>发布 & SEO</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">智能与语言</div>
+    <a class="nav-item" href="language.html"><span class="nav-icon">🌍</span>语言版本</a>
+    <a class="nav-item" href="ai-tasks.html"><span class="nav-icon">✨</span>AI 任务中心</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">平台</div>
+    <a class="nav-item" href="developer.html"><span class="nav-icon">🛠️</span>开发者平台</a>
+    <a class="nav-item" href="settings.html"><span class="nav-icon">⚙️</span>系统设置</a>
+  </div>
+  <div class="sidebar-bottom">
+    <a class="nav-item" href="profile.html"><div class="avatar avatar-sm" style="background:var(--gradient)">A</div><span class="identity-inline">Admin <span class="identity-badge human">人类</span></span></a>
+  </div>
+</aside>
+
+<div class="main-area">
+  <div class="topbar">
+    <div class="breadcrumb">
+      <a href="spaces.html">空间</a><span class="breadcrumb-sep">›</span>
+      <a href="space.html">SoulDoc Demo</a><span class="breadcrumb-sep">›</span>
+      <strong style="color:var(--text)">文档中心</strong>
+    </div>
+    <div class="topbar-right">
+      <button class="btn btn-sm" onclick="openModal('filter-modal')">🔽 筛选</button>
+      <button class="btn btn-sm btn-primary" onclick="openModal('new-doc-modal')">＋ 新建文档</button>
+    </div>
+  </div>
+
+  <div class="docs-layout">
+    <!-- Doc Tree -->
+    <div class="doc-sidebar">
+      <div class="doc-sidebar-top">
+        <input class="input" style="font-size:13px;padding:8px 12px" placeholder="🔍 搜索文档...">
+      </div>
+      <div style="padding:8px 4px">
+        <!-- Folder: 产品设计 -->
+        <div class="tree-folder">📂 产品设计</div>
+        <div class="tree-children-area">
+          <div class="tree-node active" onclick="showDoc('prd')">📋 产品需求文档 PRD <span class="tree-badge">草稿</span></div>
+          <div class="tree-node" onclick="showDoc('roadmap')">🗺️ 产品路线图</div>
+          <div class="tree-node" onclick="showDoc('ux')">🎨 UI/UX 设计规范</div>
+          <div class="tree-node" onclick="showDoc('user')">👤 用户角色分析</div>
+        </div>
+        <!-- Folder: 技术文档 -->
+        <div class="tree-folder">📂 技术文档</div>
+        <div class="tree-children-area">
+          <div class="tree-node" onclick="showDoc('arch')">🏗️ 系统架构设计</div>
+          <div class="tree-node" onclick="showDoc('api')">🔌 API 接口文档</div>
+          <div class="tree-node" onclick="showDoc('db')">🗄️ 数据库表结构</div>
+          <div class="tree-node" onclick="showDoc('deploy')">🚀 部署指南</div>
+          <div class="tree-children-area">
+            <div class="tree-node" onclick="showDoc('install')">⚙️ 安装向导</div>
+            <div class="tree-node" onclick="showDoc('docker')">🐳 Docker 部署</div>
+          </div>
+          <div class="tree-node" onclick="showDoc('security')">🔒 安全设计</div>
+        </div>
+        <!-- Folder: AI 能力 -->
+        <div class="tree-folder">📂 AI 能力设计</div>
+        <div class="tree-children-area">
+          <div class="tree-node" onclick="showDoc('ai-arch')">✨ AI 架构设计</div>
+          <div class="tree-node" onclick="showDoc('ai-tools')">🛠️ AI 工具配置</div>
+          <div class="tree-node" onclick="showDoc('rag')">🔍 RAG 检索增强</div>
+          <div class="tree-node" onclick="showDoc('agent')">🤖 AI 用户接入</div>
+        </div>
+        <!-- Folder: 运营指南 -->
+        <div class="tree-folder">📂 运营指南</div>
+        <div class="tree-children-area">
+          <div class="tree-node" onclick="showDoc('seo-guide')">🌐 SEO 优化指南</div>
+          <div class="tree-node" onclick="showDoc('i18n')">🌍 国际化指南</div>
+        </div>
+        <div style="padding:12px 10px">
+          <button class="btn btn-sm w-full" style="justify-content:center" onclick="openModal('new-doc-modal')">＋ 新建文档</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Doc Content -->
+    <div class="doc-center">
+      <div class="doc-status-bar">
+        <span class="breadcrumb-sep">📂 产品设计</span>
+        <span class="breadcrumb-sep">›</span>
+        <span style="color:var(--text2);font-weight:500">📋 产品需求文档 PRD v2.0</span>
+        <span style="margin-left:auto;display:flex;align-items:center;gap:8px">
+          <span class="badge badge-success">🌐 公共空间</span>
+          <span class="locale-chip active">zh-CN</span>
+          <span class="locale-chip">en-US</span>
+          <span class="locale-chip">ja-JP</span>
+          <span class="badge badge-warning">草稿</span>
+          <span class="text-muted">2分钟前已保存</span>
+          <button class="btn btn-sm" onclick="location.href='editor.html'">✏️ 编辑</button>
+          <button class="btn btn-sm btn-primary" onclick="openModal('publish-modal')">🌐 发布</button>
+        </span>
+      </div>
+
+      <div class="doc-content-area">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <span class="badge badge-warning">草稿</span>
+          <span class="badge badge-primary">产品设计</span>
+          <span class="tag"><span class="tag-dot" style="background:#4f46e5"></span>AI原生</span>
+          <span class="tag"><span class="tag-dot" style="background:#f59e0b"></span>产品设计</span>
+        </div>
+        <h1 style="font-size:28px;font-weight:800;letter-spacing:-.5px;margin-bottom:12px;line-height:1.3">产品需求文档 PRD v2.0<br><span style="font-size:16px;font-weight:400;color:var(--muted)">SoulDoc — AI 原生知识生产与管理平台</span></h1>
+        <div style="display:flex;align-items:center;gap:16px;font-size:13px;color:var(--muted);margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--line)">
+          <div class="flex items-center gap-8"><div class="avatar avatar-sm">Z</div><span class="identity-inline">张三 <span class="identity-badge human">人类</span></span> 编辑</div>
+          <span>更新于 2026-04-15</span>
+          <span>版本 v2.0</span>
+          <span>👁️ 1,234 次浏览</span>
+        </div>
+
+        <div class="surface-note" style="margin-bottom:20px">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--text)">文档组：`prd-core`</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:4px">当前阅读的是 `zh-CN` 主版本。`en-US` 已发布，`ja-JP` 待复审，阅读端可按语言切换或进入对照模式。</div>
+            </div>
+            <button class="btn btn-sm" onclick="location.href='language.html'">🌍 管理语言版本</button>
+          </div>
+        </div>
+
+        <div class="grid-2" style="gap:12px;margin-bottom:20px">
+          <div class="surface-note">
+            <div style="font-size:13px;font-weight:600;margin-bottom:8px">💬 对话转文档</div>
+            <div style="font-size:12px;color:var(--muted);line-height:1.7">新文档可以从对话、会议记录、聊天草稿直接生成。系统会先给出章节、标签、语言版本和待办预览，再进入草稿编辑。</div>
+          </div>
+          <div class="surface-note">
+            <div style="font-size:13px;font-weight:600;margin-bottom:8px">🗃️ 恢复与审计</div>
+            <div style="font-size:12px;color:var(--muted);line-height:1.7">删除默认进入回收站并保留 30 天；人类与 AI 的读写、翻译、发布和 CR 动作都会进入统一审计链。</div>
+          </div>
+        </div>
+
+        <div id="doc-content">
+          <h2 id="sec-position" style="font-size:18px;font-weight:700;margin:0 0 12px;color:var(--text)">1. 产品定位</h2>
+          <p style="color:var(--text2);line-height:1.8;margin-bottom:16px">SoulDoc 是一套面向 AI 原生内容生产、知识组织、团队协作与多角色共创的文档/知识系统。以 Space / Doc / Version / Tag / File / Member 为核心对象模型，以 AI 协作、知识沉淀、搜索召回、权限隔离、多场景发布为关键能力。</p>
+
+          <div id="sec-core-value" style="background:#f0fdf4;border-left:4px solid var(--success);padding:14px 16px;border-radius:0 8px 8px 0;margin-bottom:20px;font-size:14px;color:#065f46">
+            💡 <strong>核心价值</strong>：SoulDoc 不是单纯"写文档"的工具，而是一个面向 AI 时代的"内容资产生产与管理平台"。
+          </div>
+
+          <h2 id="sec-modules" style="font-size:18px;font-weight:700;margin:24px 0 12px;color:var(--text)">2. 核心功能模块</h2>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+            <div id="sec-space-system" style="background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px">
+              <div style="font-size:18px;margin-bottom:6px">🗂️</div>
+              <div style="font-weight:600;margin-bottom:4px">空间系统</div>
+              <div style="font-size:13px;color:var(--muted)">多独立知识空间，支持公开/私有模式</div>
+            </div>
+            <div id="sec-doc-system" style="background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px">
+              <div style="font-size:18px;margin-bottom:6px">📄</div>
+              <div style="font-weight:600;margin-bottom:4px">文档系统</div>
+              <div style="font-size:13px;color:var(--muted)">树状结构、Markdown编辑、版本管理</div>
+            </div>
+            <div style="background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px">
+              <div style="font-size:18px;margin-bottom:6px">✨</div>
+              <div style="font-weight:600;margin-bottom:4px">AI 能力层</div>
+              <div style="font-size:13px;color:var(--muted)">5层AI能力：写作→结构化→协作→检索→运营</div>
+            </div>
+            <div style="background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px">
+              <div style="font-size:18px;margin-bottom:6px">🔀</div>
+              <div style="font-weight:600;margin-bottom:4px">变更请求</div>
+              <div style="font-size:13px;color:var(--muted)">Git式内容协作流：草稿→审核→合并</div>
+            </div>
+          </div>
+
+          <h2 id="sec-ai" style="font-size:18px;font-weight:700;margin:24px 0 12px;color:var(--text)">3. AI 能力层级设计</h2>
+          <div style="border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:20px">
+            <div style="padding:12px 16px;background:#eef2ff;border-bottom:1px solid var(--line);font-weight:600;display:flex;gap:10px;align-items:center"><span style="background:var(--primary);color:#fff;padding:2px 8px;border-radius:4px;font-size:12px">L1</span>辅助写作</div>
+            <div style="padding:10px 16px;font-size:13.5px;color:var(--muted)">标题生成、摘要生成、文本润色、多风格改写、段落扩写/压缩</div>
+            <div style="padding:12px 16px;background:#f0fdf4;border-bottom:1px solid var(--line);font-weight:600;display:flex;gap:10px;align-items:center"><span style="background:#10b981;color:#fff;padding:2px 8px;border-radius:4px;font-size:12px">L2</span>知识结构化</div>
+            <div style="padding:10px 16px;font-size:13.5px;color:var(--muted)">自动生成大纲、识别章节层级、提取标签、生成FAQ、生成术语表</div>
+            <div style="padding:12px 16px;background:#fdf4ff;border-bottom:1px solid var(--line);font-weight:600;display:flex;gap:10px;align-items:center"><span style="background:#8b5cf6;color:#fff;padding:2px 8px;border-radius:4px;font-size:12px">L3</span>协作生产</div>
+            <div style="padding:10px 16px;font-size:13.5px;color:var(--muted)">多角色AI工作流：创意总监AI、编辑AI、审校AI、SEO AI、翻译AI</div>
+            <div style="padding:12px 16px;background:#fff7ed;border-bottom:1px solid var(--line);font-weight:600;display:flex;gap:10px;align-items:center"><span style="background:#f59e0b;color:#fff;padding:2px 8px;border-radius:4px;font-size:12px">L4</span>知识检索增强 (RAG)</div>
+            <div style="padding:10px 16px;font-size:13.5px;color:var(--muted)">语义问答、引用文档片段、推荐阅读、知识导航</div>
+            <div style="padding:12px 16px;background:#fff1f2;font-weight:600;display:flex;gap:10px;align-items:center"><span style="background:#ef4444;color:#fff;padding:2px 8px;border-radius:4px;font-size:12px">L5</span>自动化运营</div>
+            <div style="padding:10px 16px;font-size:13.5px;color:var(--muted)">自动更新SEO字段、监控内容缺失、发现陈旧文档、生成周报</div>
+          </div>
+
+          <h2 id="sec-related" style="font-size:18px;font-weight:700;margin:24px 0 12px;color:var(--text)">4. 相关文档</h2>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <a href="docs.html" class="list-item" style="cursor:pointer">
+              <span style="font-size:16px">🏗️</span>
+              <div class="list-item-main"><div class="list-item-title">系统架构设计</div><div class="list-item-sub">reference · 技术文档</div></div>
+              <span class="badge badge-gray">reference</span>
+            </a>
+            <a href="docs.html" class="list-item" style="cursor:pointer">
+              <span style="font-size:16px">🔌</span>
+              <div class="list-item-main"><div class="list-item-title">API 接口文档</div><div class="list-item-sub">depends_on · 技术文档</div></div>
+              <span class="badge badge-gray">depends_on</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="doc-right">
+      <div style="border-bottom:1px solid var(--line)">
+        <div style="display:flex">
+          <div class="editor-right-tab active" onclick="switchRightTab('toc',this)">目录</div>
+          <div class="editor-right-tab" onclick="switchRightTab('comments',this)">评论 3</div>
+          <div class="editor-right-tab" onclick="switchRightTab('versions',this)">版本</div>
+        </div>
+      </div>
+
+      <!-- TOC -->
+      <div id="tab-toc" class="doc-right-section">
+        <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">本文目录</div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <a href="#sec-position" style="display:block;padding:5px 0;font-size:13px;color:var(--text3)">1. 产品定位</a>
+          <a href="#sec-core-value" style="display:block;padding:5px 0 5px 14px;font-size:12.5px;color:var(--muted)">1.1 核心价值</a>
+          <a href="#sec-modules" style="display:block;padding:5px 0;font-size:13px;color:var(--primary);font-weight:500">2. 核心功能模块</a>
+          <a href="#sec-space-system" style="display:block;padding:5px 0 5px 14px;font-size:12.5px;color:var(--muted)">2.1 空间系统</a>
+          <a href="#sec-doc-system" style="display:block;padding:5px 0 5px 14px;font-size:12.5px;color:var(--muted)">2.2 文档系统</a>
+          <a href="#sec-ai" style="display:block;padding:5px 0;font-size:13px;color:var(--text3)">3. AI 能力层级</a>
+          <a href="#sec-related" style="display:block;padding:5px 0;font-size:13px;color:var(--text3)">4. 相关文档</a>
+        </div>
+      </div>
+
+      <!-- AI Quick Actions -->
+      <div class="doc-right-section">
+        <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">✨ 智能与语言</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <button class="btn btn-sm w-full" style="justify-content:flex-start;gap:8px" onclick="showToast('AI正在生成摘要...','default');location.href='ai-tasks.html'">📝 生成摘要</button>
+          <button class="btn btn-sm w-full" style="justify-content:flex-start;gap:8px" onclick="showToast('AI正在生成大纲...','default')">📋 优化大纲</button>
+          <button class="btn btn-sm w-full" style="justify-content:flex-start;gap:8px" onclick="showToast('AI提取标签中...','default')">🏷️ 提取标签</button>
+          <button class="btn btn-sm w-full" style="justify-content:flex-start;gap:8px" onclick="location.href='language.html'">🌍 语言版本</button>
+        </div>
+      </div>
+
+      <!-- Comments -->
+      <div id="tab-comments" class="doc-right-section" style="display:none">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="background:var(--panel2);border-radius:10px;padding:12px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+              <div class="avatar avatar-sm" style="background:linear-gradient(135deg,#10b981,#059669)">Z</div>
+              <strong style="font-size:13px" class="identity-inline">张三 <span class="identity-badge human">人类</span></strong>
+              <span style="font-size:11px;color:var(--muted);margin-left:auto">1小时前</span>
+            </div>
+            <p style="font-size:13px;color:var(--text2)">第 3 节这里建议再补充“同一文档组的多语言版本”和公共/私有空间下的阅读差异。</p>
+            <div style="margin-top:8px;display:flex;gap:6px">
+              <button class="btn btn-sm" onclick="showToast('已回复','success')">回复</button>
+              <button class="btn btn-sm btn-success" onclick="showToast('已标记为已解决','success')">✓ 解决</button>
+            </div>
+          </div>
+          <div style="background:var(--panel2);border-radius:10px;padding:12px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+              <div class="avatar avatar-sm">A</div>
+              <strong style="font-size:13px" class="identity-inline">Admin <span class="identity-badge human">人类</span></strong>
+              <span style="font-size:11px;color:var(--muted);margin-left:auto">2小时前</span>
+            </div>
+            <p style="font-size:13px;color:var(--text2)">产品定位这段写得很好，但"内容资产生产与管理平台"这个定义需要再开会确认</p>
+          </div>
+        </div>
+        <div style="margin-top:12px">
+          <textarea class="input" style="height:72px;font-size:13px" placeholder="添加评论..."></textarea>
+          <button class="btn btn-sm btn-primary" style="margin-top:8px" onclick="showToast('评论已发送','success')">发送</button>
+        </div>
+      </div>
+
+      <!-- Versions -->
+      <div id="tab-versions" class="doc-right-section" style="display:none">
+        <div style="display:flex;flex-direction:column;gap:0">
+          <div class="version-item">
+            <div class="version-dot" style="background:var(--primary)"></div>
+            <div class="version-line"></div>
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:500">v2.0 草稿</div>
+              <div style="font-size:11.5px;color:var(--muted)"><span class="identity-inline">张三 <span class="identity-badge human">人类</span></span> · 8分钟前</div>
+              <div style="font-size:11.5px;color:var(--muted)">自动保存</div>
+            </div>
+            <span class="badge badge-primary" style="font-size:11px">当前</span>
+          </div>
+          <div class="version-item">
+            <div class="version-dot" style="background:var(--success)"></div>
+            <div class="version-line"></div>
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:500">v1.5 已发布</div>
+              <div style="font-size:11.5px;color:var(--muted)"><span class="identity-inline">Admin <span class="identity-badge human">人类</span></span> · 昨天 14:30</div>
+              <div style="font-size:11.5px;color:var(--muted)">更新了AI能力章节</div>
+            </div>
+          </div>
+          <div class="version-item">
+            <div class="version-dot"></div>
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:500">v1.0 首版</div>
+              <div style="font-size:11.5px;color:var(--muted)"><span class="identity-inline">Admin <span class="identity-badge human">人类</span></span> · 3天前</div>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-sm w-full" style="margin-top:12px;justify-content:center" onclick="location.href='versions.html'">查看完整版本历史</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Filter Modal -->
+<div class="modal-overlay" id="filter-modal">
+  <div class="modal">
+    <div class="modal-header"><h3>筛选文档</h3><button class="btn-ghost btn-icon" onclick="closeModal('filter-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">空间范围</label><select class="input select"><option>当前空间</option><option>全部空间</option><option>仅公共空间</option></select></div>
+      <div class="form-group"><label class="form-label">语言版本</label><select class="input select"><option>全部语言</option><option>仅默认语言</option><option>仅待翻译版本</option></select></div>
+      <div class="form-group" style="margin-bottom:0"><label class="form-label">状态</label><select class="input select"><option>全部状态</option><option>草稿</option><option>审核中</option><option>已发布</option></select></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('filter-modal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('filter-modal');showToast('筛选条件已应用','success')">应用筛选</button>
+    </div>
+  </div>
+</div>
+
+<!-- New Doc Modal -->
+<div class="modal-overlay" id="new-doc-modal">
+  <div class="modal">
+    <div class="modal-header"><h3>新建文档</h3><button class="btn-ghost btn-icon" onclick="closeModal('new-doc-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">文档标题 <span class="required">*</span></label><input class="input" placeholder="请输入文档标题"></div>
+      <div class="form-group"><label class="form-label">父级目录</label>
+        <select class="input select"><option>根目录（无父级）</option><option>📂 产品设计</option><option>📂 技术文档</option><option>📂 AI 能力设计</option><option>📂 运营指南</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">所属集合 Collection（可选）</label>
+        <select class="input select"><option>不加入集合（顶层 Space）</option><option>产品文档</option><option>帮助中心</option><option>开放平台</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">文档类型</label>
+        <select class="input select"><option>📄 普通文档</option><option>📁 目录文档</option><option>📋 模板文档</option><option>🤖 AI 草稿</option></select>
+      </div>
+      <div class="form-group" style="margin-bottom:0"><label class="form-label">创建方式</label>
+        <select class="input select"><option>空白文档</option><option>从对话转文档</option><option>从模板生成</option></select>
+      </div>
+      <div class="surface-note" style="margin-top:12px">需要标准起稿结构时，可直接进入 <a href="templates.html" style="color:var(--primary)">模板中心</a> 选择模板。</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('new-doc-modal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('new-doc-modal');location.href='editor.html'">创建并编辑</button>
+    </div>
+  </div>
+</div>
+
+<!-- Publish Modal -->
+<div class="modal-overlay" id="publish-modal">
+  <div class="modal">
+    <div class="modal-header"><h3>发布文档</h3><button class="btn-ghost btn-icon" onclick="closeModal('publish-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">发布目标</label>
+        <select class="input select"><option>🌐 公共空间页面</option><option>🔒 私有空间成员页</option></select>
+      </div>
+      <div class="form-group"><label class="form-label" style="display:flex;gap:8px;align-items:center"><div class="toggle on" onclick="this.classList.toggle('on')"></div>更新 SEO 信息</label></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('publish-modal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('publish-modal');showToast('文档已发布','success')">确认发布</button>
+    </div>
+  </div>
+</div>
+
+<script src="nav.js"></script>
+<script>
+function switchRightTab(id, el) {
+  document.querySelectorAll('.editor-right-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('#tab-toc, #tab-comments, #tab-versions').forEach(p => p.style.display = 'none');
+  const panel = document.getElementById('tab-' + id);
+  if (panel) panel.style.display = 'block';
+}
+</script>
+</body>
+</html>
