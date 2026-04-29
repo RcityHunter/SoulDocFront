@@ -1,0 +1,51 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "cargo install dioxus-cli --version 0.7.0 --locked || true; dx build --release; rm -rf vercel-public; mkdir -p vercel-public/docs; cp -a target/dx/soulbook_ui/release/web/public/. vercel-public/docs/",
+  "outputDirectory": "vercel-public",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "http://47.236.185.219/api/:path*"
+    },
+    {
+      "source": "/agent/:path*",
+      "destination": "http://47.236.185.219/agent/:path*"
+    },
+    {
+      "source": "/sso",
+      "destination": "http://47.236.185.219/sso"
+    },
+    {
+      "source": "/",
+      "destination": "/docs/index.html"
+    },
+    {
+      "source": "/docs",
+      "destination": "/docs/index.html"
+    },
+    {
+      "source": "/docs/:path*",
+      "destination": "/docs/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/docs/index.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, must-revalidate, proxy-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/docs/assets/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
+  ]
+}
