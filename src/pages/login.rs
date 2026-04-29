@@ -129,6 +129,16 @@ pub fn Login() -> Element {
 
                     div { style: "margin-top:24px;padding-top:24px;border-top:1px solid var(--line);text-align:center;",
                         p { style: "font-size:13px;color:var(--muted);margin-bottom:12px;", "或通过以下方式登录" }
+                        a {
+                            href: "/api/docs/auth/google/start",
+                            class: "btn w-full",
+                            style: "width:100%;justify-content:center;display:flex;align-items:center;gap:8px;margin-bottom:10px;text-decoration:none;",
+                            span {
+                                style: "display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:linear-gradient(45deg,#4285f4,#ea4335,#fbbc05,#34a853);color:#fff;font-size:11px;font-weight:800;",
+                                "G"
+                            }
+                            span { "使用 Google 登录" }
+                        }
                         div { style: "display:flex;gap:10px;",
                             button { class: "btn w-full", style: "flex:1;justify-content:center;",
                                 "🐙 GitHub"
