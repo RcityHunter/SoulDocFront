@@ -261,6 +261,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "console_error_panic_hook"
+version = "0.1.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a06aeb73f470f66dcdbf7223caeebb85984942f22f1adb2a088cf9668146bbbc"
+dependencies = [
+ "cfg-if",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "const-serialize"
 version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -494,9 +504,9 @@ dependencies = [
 
 [[package]]
 name = "dioxus"
-version = "0.7.5"
+version = "0.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a44c550c06b6785e16258ad620d5b559f5bbcbcc50e3c18c08aa6af2604a4c32"
+checksum = "0d5b0aec58753daee127a5fe2d1a40b0db8cebc0b8a7f97b34df2492cb90d78e"
 dependencies = [
  "dioxus-asset-resolver",
  "dioxus-cli-config",
@@ -2593,6 +2603,7 @@ dependencies = [
 name = "soulbook_ui"
 version = "0.1.0"
 dependencies = [
+ "console_error_panic_hook",
  "dioxus",
  "gloo-net 0.5.0",
  "gloo-storage",

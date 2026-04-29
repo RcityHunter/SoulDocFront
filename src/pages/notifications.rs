@@ -1,4 +1,4 @@
-use crate::api::notifications as notif_api;
+﻿use crate::api::notifications as notif_api;
 use crate::models::Notification;
 use dioxus::prelude::*;
 

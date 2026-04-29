@@ -1,4 +1,4 @@
-use crate::api::templates as tpl_api;
+﻿use crate::api::templates as tpl_api;
 use crate::routes::Route;
 use dioxus::prelude::*;
 use serde_json::Value;

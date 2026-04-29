@@ -1,4 +1,4 @@
-use crate::api::ai_tasks;
+﻿use crate::api::ai_tasks;
 use crate::api::documents as docs_api;
 use crate::api::spaces as spaces_api;
 use dioxus::prelude::*;
@@ -87,7 +87,7 @@ pub fn Editor() -> Element {
     let mut doc_status = use_signal(|| "draft".to_string());
     let mut saving = use_signal(|| false);
     let mut save_msg = use_signal(|| String::new());
-    let mut active_panel = use_signal(|| "meta");
+    let mut active_panel = use_signal(|| "ai");
     let mut ai_msg = use_signal(|| String::new());
     let mut ai_loading = use_signal(|| false);
     let mut word_count = use_signal(|| 0usize);
@@ -279,54 +279,47 @@ pub fn Editor() -> Element {
 
                 // Toolbar
                 div { class: "editor-toolbar",
-                    // Format buttons (left)
                     if !selected_doc_slug.read().is_empty() {
-                        div { style: "display:flex;align-items:center;gap:5px;flex-wrap:wrap;",
+                        div { style: "display:flex;align-items:center;gap:4px;flex-wrap:wrap;flex:1;",
 
-                            // Heading group
+                            // Paragraph style selector
                             div { class: "toolbar-group",
-                                button { class: "toolbar-btn", title: "正文",
-                                    onclick: move |_| { let js = fmt_line_js(""); apply_fmt(js); }, "¶" }
-                                button { class: "toolbar-btn", title: "一级标题",
-                                    style: "font-size:14px;font-weight:700;",
-                                    onclick: move |_| { let js = fmt_line_js("# "); apply_fmt(js); }, "H1" }
-                                button { class: "toolbar-btn", title: "二级标题",
-                                    style: "font-size:13px;font-weight:700;",
-                                    onclick: move |_| { let js = fmt_line_js("## "); apply_fmt(js); }, "H2" }
-                                button { class: "toolbar-btn", title: "三级标题",
-                                    style: "font-size:12px;font-weight:700;",
-                                    onclick: move |_| { let js = fmt_line_js("### "); apply_fmt(js); }, "H3" }
+                                select {
+                                    style: "font-size:12.5px;padding:3px 6px;border:1px solid var(--line);border-radius:6px;background:var(--panel2);color:var(--text);height:28px;cursor:pointer;",
+                                    onchange: move |e| {
+                                        let js = match e.value().as_str() {
+                                            "h1" => fmt_line_js("# "),
+                                            "h2" => fmt_line_js("## "),
+                                            "h3" => fmt_line_js("### "),
+                                            _ => fmt_line_js(""),
+                                        };
+                                        apply_fmt(js);
+                                    },
+                                    option { value: "p", "正文" }
+                                    option { value: "h1", "H1" }
+                                    option { value: "h2", "H2" }
+                                    option { value: "h3", "H3" }
+                                }
                             }
 
-                            // Inline format group
+                            // Inline format
                             div { class: "toolbar-group",
-                                button { class: "toolbar-btn", title: "粗体 (Ctrl+B)",
-                                    style: "font-weight:700;",
+                                button { class: "toolbar-btn", title: "粗体 (Ctrl+B)", style: "font-weight:700;",
                                     onclick: move |_| { let js = fmt_inline_js("**", "**", "粗体"); apply_fmt(js); }, "B" }
-                                button { class: "toolbar-btn", title: "斜体 (Ctrl+I)",
-                                    style: "font-style:italic;font-weight:600;",
+                                button { class: "toolbar-btn", title: "斜体 (Ctrl+I)", style: "font-style:italic;",
                                     onclick: move |_| { let js = fmt_inline_js("*", "*", "斜体"); apply_fmt(js); }, "I" }
-                                button { class: "toolbar-btn", title: "下划线",
-                                    style: "text-decoration:underline;",
+                                button { class: "toolbar-btn", title: "下划线", style: "text-decoration:underline;",
                                     onclick: move |_| { let js = fmt_inline_js("<u>", "</u>", "下划线"); apply_fmt(js); }, "U" }
-                                button { class: "toolbar-btn", title: "删除线",
-                                    style: "text-decoration:line-through;color:var(--muted);",
+                                button { class: "toolbar-btn", title: "删除线", style: "text-decoration:line-through;color:var(--muted);",
                                     onclick: move |_| { let js = fmt_inline_js("~~", "~~", "删除线"); apply_fmt(js); }, "S" }
-                                button { class: "toolbar-btn", title: "行内代码",
-                                    style: "font-family:monospace;font-size:12px;background:var(--panel3);border-radius:4px;",
-                                    onclick: move |_| { let js = fmt_inline_js("`", "`", "code"); apply_fmt(js); }, "`·`" }
+                                button { class: "toolbar-btn", title: "行内代码", style: "font-family:monospace;font-size:11px;",
+                                    onclick: move |_| { let js = fmt_inline_js("`", "`", "code"); apply_fmt(js); }, "`" }
                             }
 
-                            // Block group
+                            // Lists
                             div { class: "toolbar-group",
-                                button { class: "toolbar-btn", title: "代码块",
-                                    style: "font-family:monospace;font-size:11px;",
-                                    onclick: move |_| { let js = fmt_block_js("```", "```", "代码"); apply_fmt(js); }, "```" }
-                                button { class: "toolbar-btn", title: "引用块",
-                                    style: "font-size:15px;",
-                                    onclick: move |_| { let js = fmt_line_js("> "); apply_fmt(js); }, "❝" }
                                 button { class: "toolbar-btn", title: "无序列表",
-                                    onclick: move |_| { let js = fmt_line_js("- "); apply_fmt(js); }, "• 列表" }
+                                    onclick: move |_| { let js = fmt_line_js("- "); apply_fmt(js); }, "≡" }
                                 button { class: "toolbar-btn", title: "有序列表",
                                     onclick: move |_| { let js = fmt_line_js("1. "); apply_fmt(js); }, "1. 列表" }
                                 button { class: "toolbar-btn", title: "水平分隔线",
@@ -337,59 +330,33 @@ pub fn Editor() -> Element {
                                     }, "───" }
                             }
 
-                            // Link / Image
+                            // Link / Image / Table / Code block
                             div { class: "toolbar-group",
                                 button { class: "toolbar-btn", title: "插入链接",
                                     onclick: move |_| { let js = fmt_inline_js("[", "](https://)", "链接文字"); apply_fmt(js); }, "🔗" }
                                 button { class: "toolbar-btn", title: "插入图片",
-                                    onclick: move |_| { let js = fmt_inline_js("![", "](https://)", "图片描述"); apply_fmt(js); }, "🖼️" }
+                                    onclick: move |_| { let js = fmt_inline_js("![", "](https://)", "图片描述"); apply_fmt(js); }, "🖼" }
+                                button { class: "toolbar-btn", title: "插入表格",
+                                    onclick: move |_| {
+                                        let js = r#"(function(){var ta=document.getElementById('souldoc-editor-ta');if(!ta){dioxus.send(null);return;}var s=ta.selectionStart,v=ta.value;var t='\n| 列1 | 列2 | 列3 |\n|---|---|---|\n| 内容 | 内容 | 内容 |\n';dioxus.send(v.substring(0,s)+t+v.substring(s));})();"#;
+                                        apply_fmt(js.to_string());
+                                    }, "⊞" }
+                                button { class: "toolbar-btn", title: "代码块", style: "font-family:monospace;font-size:11px;",
+                                    onclick: move |_| { let js = fmt_block_js("```", "```", "代码"); apply_fmt(js); }, "{{}}" }
                             }
 
-                            // Font color group — colored dot swatches
+                            // AI button
                             div { class: "toolbar-group",
-                                button { class: "toolbar-btn", title: "红色",
-                                    onclick: move |_| { let js = fmt_color_js("#dc2626"); apply_fmt(js); },
-                                    span { style: "width:13px;height:13px;border-radius:50%;background:#dc2626;display:block;border:1.5px solid rgba(0,0,0,.12);" } }
-                                button { class: "toolbar-btn", title: "橙色",
-                                    onclick: move |_| { let js = fmt_color_js("#ea580c"); apply_fmt(js); },
-                                    span { style: "width:13px;height:13px;border-radius:50%;background:#ea580c;display:block;border:1.5px solid rgba(0,0,0,.12);" } }
-                                button { class: "toolbar-btn", title: "绿色",
-                                    onclick: move |_| { let js = fmt_color_js("#16a34a"); apply_fmt(js); },
-                                    span { style: "width:13px;height:13px;border-radius:50%;background:#16a34a;display:block;border:1.5px solid rgba(0,0,0,.12);" } }
-                                button { class: "toolbar-btn", title: "蓝色",
-                                    onclick: move |_| { let js = fmt_color_js("#2563eb"); apply_fmt(js); },
-                                    span { style: "width:13px;height:13px;border-radius:50%;background:#2563eb;display:block;border:1.5px solid rgba(0,0,0,.12);" } }
-                                button { class: "toolbar-btn", title: "紫色",
-                                    onclick: move |_| { let js = fmt_color_js("#7c3aed"); apply_fmt(js); },
-                                    span { style: "width:13px;height:13px;border-radius:50%;background:#7c3aed;display:block;border:1.5px solid rgba(0,0,0,.12);" } }
-                                button { class: "toolbar-btn", title: "灰色",
-                                    onclick: move |_| { let js = fmt_color_js("#64748b"); apply_fmt(js); },
-                                    span { style: "width:13px;height:13px;border-radius:50%;background:#64748b;display:block;border:1.5px solid rgba(0,0,0,.12);" } }
-                            }
-
-                            // Font size group
-                            div { class: "toolbar-group",
-                                button { class: "toolbar-btn", title: "缩小字号",
-                                    style: "font-size:10px;color:var(--muted);",
-                                    onclick: move |_| { let js = fmt_size_js("0.8em"); apply_fmt(js); }, "A↓" }
-                                button { class: "toolbar-btn", title: "放大字号",
-                                    style: "font-size:15px;",
-                                    onclick: move |_| { let js = fmt_size_js("1.25em"); apply_fmt(js); }, "A↑" }
-                                button { class: "toolbar-btn", title: "超大字号",
-                                    style: "font-size:18px;font-weight:600;",
-                                    onclick: move |_| { let js = fmt_size_js("1.6em"); apply_fmt(js); }, "A↑↑" }
-                            }
-
-                            // Highlight
-                            div { class: "toolbar-group",
-                                button { class: "toolbar-btn", title: "黄色高亮",
-                                    onclick: move |_| { let js = fmt_inline_js("<mark>", "</mark>", "高亮"); apply_fmt(js); },
-                                    span { style: "background:#fef08a;padding:1px 5px;border-radius:3px;font-size:12px;font-weight:600;color:#78350f;", "高亮" } }
+                                button {
+                                    style: "display:flex;align-items:center;gap:4px;padding:4px 10px;border:none;border-radius:6px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:12px;font-weight:600;cursor:pointer;height:28px;",
+                                    onclick: move |_| active_panel.set("ai"),
+                                    "✦ AI"
+                                }
                             }
                         }
                     }
 
-                    // Right: save actions
+                    // Right: save status + button
                     div { style: "margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0;",
                         if !save_msg().is_empty() {
                             span { style: "font-size:12px;color:var(--muted);", "{save_msg}" }
@@ -465,74 +432,77 @@ pub fn Editor() -> Element {
 
             // ── Right panel ───────────────────────────────────────────
             div { class: "editor-right",
+                // Tab bar
                 div { class: "editor-right-tabs",
                     div {
                         class: if active_panel() == "ai" { "editor-right-tab active" } else { "editor-right-tab" },
                         onclick: move |_| active_panel.set("ai"),
-                        "AI 助手"
+                        "✦ 智能"
                     }
                     div {
-                        class: if active_panel() == "meta" { "editor-right-tab active" } else { "editor-right-tab" },
-                        onclick: move |_| active_panel.set("meta"),
-                        "元数据"
+                        class: if active_panel() == "lang" { "editor-right-tab active" } else { "editor-right-tab" },
+                        onclick: move |_| active_panel.set("lang"),
+                        "语言"
                     }
                     div {
-                        class: if active_panel() == "guide" { "editor-right-tab active" } else { "editor-right-tab" },
-                        onclick: move |_| active_panel.set("guide"),
-                        "语法"
+                        class: if active_panel() == "info" { "editor-right-tab active" } else { "editor-right-tab" },
+                        onclick: move |_| active_panel.set("info"),
+                        "信息"
                     }
                 }
 
+                // ── 智能 tab ──────────────────────────────────────────
                 if active_panel() == "ai" {
-                    div { class: "editor-right-body",
-                        div { class: "ai-panel", style: "margin-bottom:12px;",
-                            h3 { "✦ AI 工具箱" }
+                    div { class: "editor-right-body", style: "padding:0;",
+
+                        // 智能写作 block (dark)
+                        div { style: "background:#1e1b4b;border-radius:10px;margin:12px 12px 0;padding:14px;",
+                            div { style: "display:flex;align-items:center;gap:6px;margin-bottom:12px;",
+                                span { style: "color:#a78bfa;font-size:14px;", "✦" }
+                                span { style: "color:#e2e8f0;font-size:13px;font-weight:700;", "智能写作" }
+                            }
                             {
-                                let tasks: &[(&str, &str, &str)] = &[
-                                    ("📝", "生成摘要",   "summarize"),
-                                    ("🌍", "翻译此文档", "translate"),
-                                    ("✅", "审校建议",   "proofread"),
-                                    ("🔍", "SEO 检查",   "seo_check"),
-                                    ("❓", "生成 FAQ",   "faq"),
+                                let writing_tasks: &[(&str, &str, &str)] = &[
+                                    ("📄", "生成文档摘要", "summarize"),
+                                    ("📋", "AI 优化大纲",  "outline"),
+                                    ("🏷", "智能提取标签", "extract_tags"),
+                                    ("❓", "生成 FAQ",     "faq"),
                                 ];
                                 rsx! {
-                                    for (icon, label, task_type) in tasks.iter() {
-                                        {
-                                            let task_type = task_type.to_string();
-                                            let label_str = label.to_string();
-                                            let space = selected_space.read().clone();
-                                            let doc = selected_doc_slug.read().clone();
-                                            let doc_title = title.read().clone();
-                                            rsx! {
-                                                button {
-                                                    class: "ai-tool-btn",
-                                                    disabled: ai_loading() || doc.is_empty(),
-                                                    onclick: move |_| {
-                                                        if doc.is_empty() { return; }
-                                                        let tt = task_type.clone();
-                                                        let lbl = label_str.clone();
-                                                        let sp = space.clone();
-                                                        let dc = doc.clone();
-                                                        let dt = doc_title.clone();
-                                                        ai_loading.set(true);
-                                                        ai_msg.set(format!("正在创建「{}」任务…", lbl));
-                                                        spawn(async move {
-                                                            match ai_tasks::create_task(ai_tasks::CreateTaskRequest {
-                                                                task_type: tt,
-                                                                document_id: dc,
-                                                                document_title: Some(dt),
-                                                                space_id: Some(sp),
-                                                                model: None,
-                                                                target_language: None,
-                                                            }).await {
-                                                                Ok(_) => ai_msg.set(format!("✅ 「{}」任务已创建，前往 AI 任务中心查看进度", lbl)),
-                                                                Err(e) => ai_msg.set(format!("❌ 创建失败：{}", e)),
-                                                            }
-                                                            ai_loading.set(false);
-                                                        });
-                                                    },
-                                                    span { class: "ai-tool-icon", "{icon}" }
-                                                    "{label}"
+                                    div { style: "display:flex;flex-direction:column;gap:8px;",
+                                        for (icon, label, task_type) in writing_tasks.iter() {
+                                            {
+                                                let tt = task_type.to_string();
+                                                let lbl = label.to_string();
+                                                let ic = icon.to_string();
+                                                let space = selected_space.read().clone();
+                                                let doc = selected_doc_slug.read().clone();
+                                                let doc_title = title.read().clone();
+                                                rsx! {
+                                                    button {
+                                                        style: "display:flex;align-items:center;gap:8px;padding:8px 12px;background:#312e81;border:none;border-radius:8px;color:#e2e8f0;font-size:12.5px;cursor:pointer;text-align:left;width:100%;",
+                                                        disabled: ai_loading() || doc.is_empty(),
+                                                        onclick: move |_| {
+                                                            if doc.is_empty() { return; }
+                                                            let t = tt.clone(); let l = lbl.clone();
+                                                            let sp = space.clone(); let dc = doc.clone(); let dt = doc_title.clone();
+                                                            ai_loading.set(true);
+                                                            ai_msg.set(format!("正在创建「{}」任务…", l));
+                                                            spawn(async move {
+                                                                match ai_tasks::create_task(ai_tasks::CreateTaskRequest {
+                                                                    task_type: t, document_id: dc,
+                                                                    document_title: Some(dt), space_id: Some(sp),
+                                                                    model: None, target_language: None,
+                                                                }).await {
+                                                                    Ok(_) => ai_msg.set(format!("✅ 「{}」任务已创建", l)),
+                                                                    Err(e) => ai_msg.set(format!("❌ 失败：{}", e)),
+                                                                }
+                                                                ai_loading.set(false);
+                                                            });
+                                                        },
+                                                        span { style: "font-size:14px;", "{ic}" }
+                                                        "{lbl}"
+                                                    }
                                                 }
                                             }
                                         }
@@ -540,19 +510,116 @@ pub fn Editor() -> Element {
                                 }
                             }
                         }
-                        if !ai_msg().is_empty() {
-                            div { style: "font-size:12px;padding:10px 12px;background:var(--panel2);border-radius:8px;border:1px solid var(--line);line-height:1.6;",
-                                "{ai_msg}"
+
+                        // 写作辅助 block
+                        div { style: "padding:12px 12px 4px;",
+                            p { style: "font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;", "写作辅助" }
+                            div { style: "display:flex;flex-direction:column;gap:2px;",
+                                {
+                                    let assist_items: &[(&str, &str, &str)] = &[
+                                        ("💬", "对话转文档",   "dialog_to_doc"),
+                                        ("✨", "润色选中内容", "polish"),
+                                        ("📝", "扩写选中段落", "expand"),
+                                        ("📉", "压缩选中段落", "compress"),
+                                        ("🌐", "翻译文档",     "translate"),
+                                        ("🔍", "AI 审校检查",  "proofread"),
+                                    ];
+                                    rsx! {
+                                        for (icon, label, task_type) in assist_items.iter() {
+                                            {
+                                                let tt = task_type.to_string();
+                                                let lbl = label.to_string();
+                                                let ic = icon.to_string();
+                                                let space = selected_space.read().clone();
+                                                let doc = selected_doc_slug.read().clone();
+                                                let doc_title = title.read().clone();
+                                                rsx! {
+                                                    button {
+                                                        style: "display:flex;align-items:center;gap:8px;padding:7px 8px;background:transparent;border:none;border-radius:6px;color:var(--text2);font-size:12.5px;cursor:pointer;text-align:left;width:100%;",
+                                                        disabled: ai_loading() || doc.is_empty(),
+                                                        onclick: move |_| {
+                                                            if doc.is_empty() { return; }
+                                                            let t = tt.clone(); let l = lbl.clone();
+                                                            let sp = space.clone(); let dc = doc.clone(); let dt = doc_title.clone();
+                                                            ai_loading.set(true);
+                                                            ai_msg.set(format!("正在创建「{}」任务…", l));
+                                                            spawn(async move {
+                                                                match ai_tasks::create_task(ai_tasks::CreateTaskRequest {
+                                                                    task_type: t, document_id: dc,
+                                                                    document_title: Some(dt), space_id: Some(sp),
+                                                                    model: None, target_language: None,
+                                                                }).await {
+                                                                    Ok(_) => ai_msg.set(format!("✅ 「{}」任务已创建", l)),
+                                                                    Err(e) => ai_msg.set(format!("❌ 失败：{}", e)),
+                                                                }
+                                                                ai_loading.set(false);
+                                                            });
+                                                        },
+                                                        span { style: "font-size:14px;width:18px;text-align:center;", "{ic}" }
+                                                        "{lbl}"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
-                        } else if selected_doc_slug.read().is_empty() {
-                            p { style: "font-size:12px;color:var(--muted);text-align:center;padding:20px;",
-                                "请先选择文档后使用 AI 工具箱"
+                        }
+
+                        // 知识搜索 block
+                        div { style: "padding:4px 12px 12px;border-top:1px solid var(--line);margin-top:8px;",
+                            p { style: "font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:10px 0 8px;", "知识搜索" }
+                            button {
+                                style: "width:100%;padding:8px 12px;background:var(--primary);border:none;border-radius:8px;color:#fff;font-size:12.5px;cursor:pointer;font-weight:500;",
+                                "🔎 语义检索"
+                            }
+                        }
+
+                        // AI result message
+                        if !ai_msg().is_empty() {
+                            div { style: "margin:8px 12px;font-size:12px;padding:10px 12px;background:var(--panel2);border-radius:8px;border:1px solid var(--line);line-height:1.6;",
+                                "{ai_msg}"
                             }
                         }
                     }
                 }
 
-                if active_panel() == "meta" {
+                // ── 语言 tab ──────────────────────────────────────────
+                if active_panel() == "lang" {
+                    div { class: "editor-right-body",
+                        div { style: "padding:8px 0;",
+                            p { style: "font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;", "语言版本" }
+                            div { style: "display:flex;flex-direction:column;gap:8px;",
+                                {
+                                    let langs = [("中文 (简体)", "zh-CN", true), ("English", "en", false), ("日本語", "ja", false)];
+                                    rsx! {
+                                        for (name, code, active) in langs.iter() {
+                                            div { style: if *active { "display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:8px;border:1px solid var(--primary);background:var(--primary)0f;" } else { "display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);" },
+                                                div {
+                                                    p { style: "font-size:13px;font-weight:500;", "{name}" }
+                                                    p { style: "font-size:11px;color:var(--muted);", "{code}" }
+                                                }
+                                                if *active {
+                                                    span { style: "font-size:11px;color:var(--primary);font-weight:600;", "当前" }
+                                                } else {
+                                                    button { style: "font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:2px 8px;background:transparent;cursor:pointer;", "切换" }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            div { style: "margin-top:14px;padding-top:14px;border-top:1px solid var(--line);",
+                                button { style: "width:100%;padding:8px;border:1px dashed var(--line);border-radius:8px;background:transparent;color:var(--muted);font-size:12.5px;cursor:pointer;",
+                                    "+ 添加语言版本"
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // ── 信息 tab ──────────────────────────────────────────
+                if active_panel() == "info" {
                     div { class: "editor-right-body",
                         match &*doc_res.read() {
                             Some(Ok(Some(doc))) => rsx! {
@@ -568,12 +635,12 @@ pub fn Editor() -> Element {
                                     label { class: "form-label", "状态" }
                                     {
                                         let status = doc.status.as_deref().unwrap_or("draft");
-                                        let (cls, label) = match status {
+                                        let (cls, lbl) = match status {
                                             "published" => ("badge badge-success", "已发布"),
                                             "review" => ("badge badge-warning", "审核中"),
                                             _ => ("badge badge-gray", "草稿"),
                                         };
-                                        rsx! { span { class: cls, "{label}" } }
+                                        rsx! { span { class: cls, "{lbl}" } }
                                     }
                                 }
                                 if let Some(created_at) = &doc.created_at {
@@ -596,40 +663,8 @@ pub fn Editor() -> Element {
                                 }
                             },
                             _ => rsx! {
-                                p { style: "font-size:12px;color:var(--muted);padding:12px;", "选择文档后显示元数据" }
+                                p { style: "font-size:12px;color:var(--muted);padding:12px;", "选择文档后显示信息" }
                             },
-                        }
-                    }
-                }
-
-                if active_panel() == "guide" {
-                    div { class: "editor-right-body",
-                        div { style: "font-size:12px;line-height:1.8;color:var(--text2);",
-                            p { style: "font-weight:700;margin-bottom:8px;color:var(--text);", "Markdown 速查" }
-                            div { style: "display:flex;flex-direction:column;gap:4px;",
-                                GuideRow { md: "# 标题", preview: "H1 标题" }
-                                GuideRow { md: "## 标题", preview: "H2 标题" }
-                                GuideRow { md: "**粗体**", preview: "粗体" }
-                                GuideRow { md: "*斜体*", preview: "斜体" }
-                                GuideRow { md: "~~删除线~~", preview: "删除线" }
-                                GuideRow { md: "`行内代码`", preview: "代码" }
-                                GuideRow { md: "> 引用", preview: "引用块" }
-                                GuideRow { md: "- 无序列表", preview: "• 列表" }
-                                GuideRow { md: "1. 有序列表", preview: "1. 列表" }
-                                GuideRow { md: "---", preview: "分隔线" }
-                                GuideRow { md: "[文字](url)", preview: "超链接" }
-                                GuideRow { md: "![描述](url)", preview: "图片" }
-                            }
-                            p { style: "font-weight:700;margin:12px 0 8px;color:var(--text);", "快捷键" }
-                            div { style: "display:flex;flex-direction:column;gap:4px;",
-                                GuideRow { md: "Ctrl+B", preview: "粗体" }
-                                GuideRow { md: "Ctrl+I", preview: "斜体" }
-                                GuideRow { md: "Ctrl+S", preview: "保存" }
-                            }
-                            p { style: "font-weight:700;margin:12px 0 8px;color:var(--text);", "HTML 颜色/字号" }
-                            p { style: "font-size:11px;color:var(--muted);line-height:1.7;",
-                                "点击工具栏颜色/字号按钮，会将选中文字包裹为 HTML span。Markdown 渲染器会保留内联 HTML 样式。"
-                            }
                         }
                     }
                 }

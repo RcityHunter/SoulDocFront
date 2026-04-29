@@ -1,4 +1,4 @@
-use crate::routes::Route;
+﻿use crate::routes::Route;
 use crate::state::AuthState;
 use dioxus::prelude::*;
 use gloo_storage::{LocalStorage, Storage};
@@ -37,7 +37,7 @@ pub fn Sidebar() -> Element {
     }
 
     rsx! {
-        aside { class: "sidebar",
+        aside { class: "sidebar", onclick: move |_| ws_open.set(false),
             // ── Brand ──
             div { class: "sidebar-brand",
                 div { class: "brand-logo", "SD" }
@@ -51,7 +51,7 @@ pub fn Sidebar() -> Element {
             WorkspaceSwitcher { open: ws_open }
 
             // ── 主导航 ──
-            div { class: "nav-section", onclick: move |_| ws_open.set(false),
+            div { class: "nav-section",
                 div { class: "nav-section-title", "主导航" }
                 Link { to: Route::Dashboard {}, class: nav_cls!(Route::Dashboard {}),
                     span { class: "nav-icon", "🏠" } "首页"
@@ -68,7 +68,7 @@ pub fn Sidebar() -> Element {
             }
 
             // ── 当前空间 ──
-            div { class: "nav-section", onclick: move |_| ws_open.set(false),
+            div { class: "nav-section",
                 div { class: "nav-section-title", "当前空间" }
                 Link { to: Route::SpaceOverview {}, class: nav_cls!(Route::SpaceOverview {}),
                     span { class: "nav-icon", "📌" } "空间概览"
@@ -97,10 +97,13 @@ pub fn Sidebar() -> Element {
             }
 
             // ── 智能与语言 ──
-            div { class: "nav-section", onclick: move |_| ws_open.set(false),
+            div { class: "nav-section",
                 div { class: "nav-section-title", "智能与语言" }
                 Link { to: Route::Language {}, class: nav_cls!(Route::Language {}),
                     span { class: "nav-icon", "🌍" } "语言版本"
+                }
+                Link { to: Route::AiAgent {}, class: nav_cls!(Route::AiAgent {}),
+                    span { class: "nav-icon", "🔌" } "AI Agent 接入"
                 }
                 Link { to: Route::AiTasks {}, class: nav_cls!(Route::AiTasks {}),
                     span { class: "nav-icon", "✨" } "AI 任务中心"
@@ -111,7 +114,7 @@ pub fn Sidebar() -> Element {
             }
 
             // ── 发布与平台 ──
-            div { class: "nav-section", onclick: move |_| ws_open.set(false),
+            div { class: "nav-section",
                 div { class: "nav-section-title", "发布与平台" }
                 Link { to: Route::Workspace {}, class: nav_cls!(Route::Workspace {}),
                     span { class: "nav-icon", "🖥️" } "发布站点"
@@ -131,7 +134,7 @@ pub fn Sidebar() -> Element {
             }
 
             // ── 底部用户 ──
-            div { class: "sidebar-bottom", onclick: move |_| ws_open.set(false),
+            div { class: "sidebar-bottom",
                 Link { to: Route::Profile {}, class: nav_cls!(Route::Profile {}),
                     div { class: "avatar avatar-sm",
                         style: "background:var(--gradient);margin-right:2px;",
@@ -188,7 +191,6 @@ fn WorkspaceSwitcher(open: Signal<bool>) -> Element {
 
             if open() {
                 div { class: "ws-panel",
-                    onclick: move |e| e.stop_propagation(),
                     p { class: "ws-panel-header", "切换工作区" }
 
                     WsItem {

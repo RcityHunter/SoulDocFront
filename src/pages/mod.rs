@@ -1,3 +1,4 @@
+pub mod ai_agent;
 pub mod ai_tasks;
 pub mod ai_tools;
 pub mod change_requests;
@@ -23,6 +24,7 @@ pub mod templates;
 pub mod versions;
 pub mod workspace;
 
+pub use ai_agent::AiAgent;
 pub use ai_tasks::AiTasks;
 pub use ai_tools::AiTools;
 pub use change_requests::ChangeRequests;

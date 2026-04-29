@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+pub mod ai_agent;
 pub mod ai_tasks;
 pub mod auth;
 pub mod change_requests;

@@ -1,4 +1,4 @@
-use crate::api::settings as settings_api;
+﻿use crate::api::settings as settings_api;
 use dioxus::prelude::*;
 use serde_json::Value;
 

@@ -1,10 +1,12 @@
 use crate::routes::Route;
-use crate::state::AuthState;
+use crate::state::{AuthState, CreateDocTrigger};
 use dioxus::prelude::*;
 
 #[component]
 pub fn Topbar() -> Element {
     let auth = use_context::<Signal<AuthState>>();
+    let mut create_trigger = use_context::<Signal<CreateDocTrigger>>();
+    let navigator = use_navigator();
     let initial = {
         let state = auth.read();
         state
@@ -33,7 +35,14 @@ pub fn Topbar() -> Element {
                 span { class: "ai-badge", "AI 已就绪" }
                 Link { to: Route::GitSync {}, class: "btn btn-sm", "连接 GitHub" }
                 Link { to: Route::Members {}, class: "btn btn-sm", "邀请成员" }
-                Link { to: Route::Docs {}, class: "btn btn-sm btn-primary", "＋ 新建文档" }
+                button {
+                    class: "btn btn-sm btn-primary",
+                    onclick: move |_| {
+                        create_trigger.write().0 = true;
+                        navigator.push(Route::Docs {});
+                    },
+                    "＋ 新建文档"
+                }
                 Link { to: Route::Profile {},
                     div { class: "avatar",
                         style: "cursor:pointer;background:var(--gradient);",

@@ -1,4 +1,4 @@
-use crate::api::publications as pub_api;
+﻿use crate::api::publications as pub_api;
 use crate::api::spaces as spaces_api;
 use dioxus::prelude::*;
 

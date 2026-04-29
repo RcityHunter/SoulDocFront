@@ -37,6 +37,8 @@ pub enum Route {
         Search {},
         #[route("/language")]
         Language {},
+        #[route("/ai-agent")]
+        AiAgent {},
         #[route("/ai-tasks")]
         AiTasks {},
         #[route("/ai-tools")]

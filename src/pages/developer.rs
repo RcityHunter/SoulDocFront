@@ -1,4 +1,4 @@
-use crate::api::developer as dev_api;
+﻿use crate::api::developer as dev_api;
 use dioxus::prelude::*;
 use serde_json::Value;
 

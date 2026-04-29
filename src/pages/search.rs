@@ -1,4 +1,4 @@
-use crate::api::search as search_api;
+﻿use crate::api::search as search_api;
 use crate::models::SearchResult;
 use dioxus::prelude::*;
 

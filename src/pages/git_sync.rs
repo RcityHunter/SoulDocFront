@@ -1,4 +1,4 @@
-use crate::api::git_sync as git_api;
+﻿use crate::api::git_sync as git_api;
 use crate::api::spaces as spaces_api;
 use dioxus::prelude::*;
 use serde_json::Value;

@@ -15,7 +15,14 @@ pub fn AppLayout() -> Element {
     });
 
     if !auth.read().is_authenticated() {
-        return rsx! { div { style: "min-height:100vh;" } };
+        return rsx! {
+            div {
+                style: "min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);",
+                div { style: "text-align:center;color:var(--muted);",
+                    p { style: "font-size:16px;", "正在跳转登录页…" }
+                }
+            }
+        };
     }
 
     rsx! {

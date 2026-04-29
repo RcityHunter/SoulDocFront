@@ -1,7 +1,11 @@
-use crate::models::User;
+﻿use crate::models::User;
 use gloo_storage::{LocalStorage, Storage};
 
 const TOKEN_KEY: &str = "soulbook_token";
+
+/// Global trigger: set to true to open the "新建文档" modal on the Docs page.
+#[derive(Debug, Clone, PartialEq)]
+pub struct CreateDocTrigger(pub bool);
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct AuthState {
