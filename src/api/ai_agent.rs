@@ -60,13 +60,13 @@ pub async fn get_agent_health() -> Result<Value, String> {
 
 /// List all agent registration requests (any status).
 pub async fn list_agent_requests() -> Result<Value, String> {
-    api_get("/api/developer/agent-requests").await
+    api_get("/api/docs/developer/agent-requests").await
 }
 
 /// Approve an agent registration. Returns the generated `api_key`.
 pub async fn approve_agent_request(reg_id: &str) -> Result<Value, String> {
     api_post(
-        &format!("/api/developer/agent-requests/{}/approve", reg_id),
+        &format!("/api/docs/developer/agent-requests/{}/approve", reg_id),
         &json!({}),
     )
     .await
@@ -75,7 +75,7 @@ pub async fn approve_agent_request(reg_id: &str) -> Result<Value, String> {
 /// Reject an agent registration with an optional reason.
 pub async fn reject_agent_request(reg_id: &str, reason: &str) -> Result<Value, String> {
     api_post(
-        &format!("/api/developer/agent-requests/{}/reject", reg_id),
+        &format!("/api/docs/developer/agent-requests/{}/reject", reg_id),
         &json!({ "reason": reason }),
     )
     .await
