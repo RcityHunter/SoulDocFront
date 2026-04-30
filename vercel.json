@@ -16,6 +16,10 @@
       "destination": "http://47.236.185.219/sso"
     },
     {
+      "source": "/auth/:path*",
+      "destination": "http://47.236.185.219/auth/:path*"
+    },
+    {
       "source": "/",
       "destination": "/docs/index.html"
     },
