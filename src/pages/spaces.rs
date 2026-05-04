@@ -4,9 +4,37 @@ use crate::routes::Route;
 use dioxus::prelude::*;
 use gloo_storage::{LocalStorage, Storage};
 
+fn normalize_slug(input: &str) -> String {
+    let mut slug = String::new();
+    let mut last_was_dash = false;
+
+    for ch in input.trim().to_lowercase().chars() {
+        if ch.is_ascii_alphanumeric() {
+            slug.push(ch);
+            last_was_dash = false;
+        } else if !last_was_dash && !slug.is_empty() {
+            slug.push('-');
+            last_was_dash = true;
+        }
+    }
+
+    let slug = slug.trim_matches('-').chars().take(50).collect::<String>();
+    let slug = slug.trim_matches('-').to_string();
+    if slug.is_empty() {
+        let suffix = (js_sys::Date::now() as u64) % 1_000_000;
+        format!("space-{suffix}")
+    } else {
+        slug
+    }
+}
+
 #[component]
 pub fn Spaces() -> Element {
-    let spaces_res = use_resource(|| async move { spaces_api::list_spaces(1, 50).await });
+    let mut spaces_epoch = use_signal(|| 0u32);
+    let spaces_res = use_resource(move || async move {
+        let _ = spaces_epoch();
+        spaces_api::list_spaces(1, 50).await
+    });
 
     let mut show_create = use_signal(|| false);
     let mut new_name = use_signal(|| String::new());
@@ -28,8 +56,9 @@ pub fn Spaces() -> Element {
 
     let do_create = move |_| {
         let name = new_name.read().trim().to_string();
-        let slug = new_slug.read().trim().to_string();
-        if name.is_empty() || slug.is_empty() {
+        let raw_slug = new_slug.read().trim().to_string();
+        let slug = normalize_slug(if raw_slug.is_empty() { &name } else { &raw_slug });
+        if name.is_empty() {
             return;
         }
         creating.set(true);
@@ -47,6 +76,7 @@ pub fn Spaces() -> Element {
                     new_name.set(String::new());
                     new_slug.set(String::new());
                     new_desc.set(String::new());
+                    spaces_epoch.set(spaces_epoch() + 1);
                 }
                 Err(e) => create_err.set(e),
             }
@@ -82,7 +112,10 @@ pub fn Spaces() -> Element {
                         div { class: "form-group",
                             label { class: "form-label", "Slug (URL 标识)" }
                             input { class: "input", placeholder: "my-space", value: "{new_slug}",
-                                oninput: move |e| new_slug.set(e.value()) }
+                                oninput: move |e| new_slug.set(normalize_slug(&e.value())) }
+                            p { style: "font-size:12px;color:var(--muted);margin-top:6px;",
+                                "只能包含小写字母、数字和连字符；不填会根据名称自动生成。"
+                            }
                         }
                         div { class: "form-group",
                             label { class: "form-label", "描述（可选）" }
