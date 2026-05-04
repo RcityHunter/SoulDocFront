@@ -4,6 +4,8 @@ use crate::routes::Route;
 use dioxus::prelude::*;
 use gloo_storage::{LocalStorage, Storage};
 
+const AUTO_SLUG_RETRY_LIMIT: usize = 4;
+
 fn normalize_slug(input: &str) -> String {
     let mut slug = String::new();
     let mut last_was_dash = false;
@@ -21,10 +23,53 @@ fn normalize_slug(input: &str) -> String {
     let slug = slug.trim_matches('-').chars().take(50).collect::<String>();
     let slug = slug.trim_matches('-').to_string();
     if slug.is_empty() {
-        let suffix = (js_sys::Date::now() as u64) % 1_000_000;
-        format!("space-{suffix}")
+        format!("space-{}", initial_slug_suffix())
     } else {
         slug
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+fn initial_slug_suffix() -> String {
+    ((js_sys::Date::now() as u64) % 1_000_000).to_string()
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn initial_slug_suffix() -> String {
+    "0".to_string()
+}
+
+fn is_slug_conflict_error(error: &str) -> bool {
+    let lower = error.to_lowercase();
+    lower.contains("http 409")
+        || lower.contains("slug already exists")
+        || lower.contains("slug 已")
+        || lower.contains("url 标识")
+}
+
+#[cfg(target_arch = "wasm32")]
+fn slug_retry_suffix(attempt: usize) -> String {
+    format!("{}{}", (js_sys::Date::now() as u64) % 1_000_000, attempt)
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn slug_retry_suffix(attempt: usize) -> String {
+    format!("retry{}", attempt)
+}
+
+fn slug_retry_candidate(base: &str, attempt: usize) -> String {
+    let suffix = slug_retry_suffix(attempt);
+    let max_base_len = 50usize.saturating_sub(suffix.len() + 1);
+    let trimmed_base = base
+        .chars()
+        .take(max_base_len)
+        .collect::<String>()
+        .trim_matches('-')
+        .to_string();
+    if trimmed_base.is_empty() {
+        format!("space-{suffix}")
+    } else {
+        format!("{trimmed_base}-{suffix}")
     }
 }
 
@@ -57,28 +102,68 @@ pub fn Spaces() -> Element {
     let do_create = move |_| {
         let name = new_name.read().trim().to_string();
         let raw_slug = new_slug.read().trim().to_string();
+        let slug_is_manual = !raw_slug.is_empty();
         let slug = normalize_slug(if raw_slug.is_empty() { &name } else { &raw_slug });
+        let description = new_desc.read().trim().to_string();
         if name.is_empty() {
             return;
         }
         creating.set(true);
         create_err.set(String::new());
         spawn(async move {
-            let req = crate::models::CreateSpaceRequest {
-                name,
-                slug,
-                description: Some(new_desc.read().trim().to_string()),
-                is_public: false,
+            let max_attempts = if slug_is_manual {
+                1
+            } else {
+                AUTO_SLUG_RETRY_LIMIT
             };
-            match spaces_api::create_space(req).await {
-                Ok(_) => {
-                    show_create.set(false);
-                    new_name.set(String::new());
-                    new_slug.set(String::new());
-                    new_desc.set(String::new());
-                    spaces_epoch.set(spaces_epoch() + 1);
+            let mut last_error = String::new();
+
+            for attempt in 0..max_attempts {
+                let candidate_slug = if attempt == 0 {
+                    slug.clone()
+                } else {
+                    slug_retry_candidate(&slug, attempt)
+                };
+                let req = crate::models::CreateSpaceRequest {
+                    name: name.clone(),
+                    slug: candidate_slug,
+                    description: Some(description.clone()),
+                    is_public: false,
+                };
+
+                match spaces_api::create_space(req).await {
+                    Ok(_) => {
+                        show_create.set(false);
+                        new_name.set(String::new());
+                        new_slug.set(String::new());
+                        new_desc.set(String::new());
+                        spaces_epoch.set(spaces_epoch() + 1);
+                        creating.set(false);
+                        return;
+                    }
+                    Err(e) if !slug_is_manual && is_slug_conflict_error(&e) => {
+                        last_error = e;
+                    }
+                    Err(e) => {
+                        create_err.set(if is_slug_conflict_error(&e) {
+                            "URL 标识已被占用，请换一个。".to_string()
+                        } else {
+                            e
+                        });
+                        creating.set(false);
+                        return;
+                    }
                 }
-                Err(e) => create_err.set(e),
+            }
+
+            if !last_error.is_empty() {
+                if is_slug_conflict_error(&last_error) {
+                    create_err.set("自动生成的 URL 标识已被占用，请手动填写一个。".to_string());
+                } else {
+                    create_err.set(last_error);
+                }
+            } else {
+                create_err.set("创建空间失败，请稍后重试。".to_string());
             }
             creating.set(false);
         });
@@ -206,5 +291,34 @@ fn SpaceCard(space: Space) -> Element {
                 }
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn normalizes_slug_to_supported_characters() {
+        assert_eq!(normalize_slug(" My Space!! "), "my-space");
+        assert_eq!(normalize_slug("中文空间"), "space-0");
+    }
+
+    #[test]
+    fn detects_slug_conflict_errors() {
+        assert!(is_slug_conflict_error(
+            "HTTP 409: {\"error\":\"Space slug already exists globally\"}"
+        ));
+        assert!(is_slug_conflict_error("URL 标识已被占用，请换一个。"));
+        assert!(!is_slug_conflict_error("HTTP 500: Internal server error"));
+    }
+
+    #[test]
+    fn retry_candidate_stays_within_slug_limit() {
+        let base = "a".repeat(80);
+        let candidate = slug_retry_candidate(&base, 1);
+        assert!(candidate.len() <= 50);
+        assert!(candidate.starts_with('a'));
+        assert!(candidate.contains("-retry1"));
     }
 }
