@@ -151,6 +151,9 @@ pub struct Notification {
     pub is_read: bool,
     pub created_at: Option<String>,
     pub link: Option<String>,
+    pub invite_token: Option<String>,
+    pub space_name: Option<String>,
+    pub role: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]

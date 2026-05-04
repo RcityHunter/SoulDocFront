@@ -31,9 +31,23 @@ pub struct InviteRequest {
     pub message: Option<String>,
 }
 
+#[derive(Serialize)]
+pub struct AcceptInvitationRequest {
+    pub invite_token: String,
+}
+
 pub async fn invite_member(space_slug: &str, req: InviteRequest) -> Result<Value, String> {
     let path = format!("/api/docs/spaces/{}/invite", space_slug);
     let resp: Wrap<Value> = api_post(&path, &req).await?;
+    Ok(resp.data)
+}
+
+pub async fn accept_invitation(invite_token: String) -> Result<Value, String> {
+    let resp: Wrap<Value> = api_post(
+        "/api/docs/spaces/invitations/accept",
+        &AcceptInvitationRequest { invite_token },
+    )
+    .await?;
     Ok(resp.data)
 }
 
