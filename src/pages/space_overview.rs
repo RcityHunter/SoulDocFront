@@ -1,4 +1,4 @@
-﻿use crate::api::members as members_api;
+use crate::api::members as members_api;
 use crate::api::spaces as spaces_api;
 use crate::models::Space;
 use crate::routes::Route;
@@ -13,7 +13,12 @@ pub fn SpaceOverview() -> Element {
     use_effect(move || {
         if selected_slug.read().is_empty() {
             if let Some(Ok(data)) = &*spaces_res.read() {
-                if let Some(first) = data.spaces.as_ref().or(data.items.as_ref()).and_then(|s| s.first()) {
+                if let Some(first) = data
+                    .spaces
+                    .as_ref()
+                    .or(data.items.as_ref())
+                    .and_then(|s| s.first())
+                {
                     selected_slug.set(first.slug.clone());
                 }
             }
@@ -239,7 +244,7 @@ pub fn SpaceOverview() -> Element {
                                                     span { class: "badge badge-success", "{m.status.as_deref().unwrap_or(\"active\")}" }
                                                 }
                                                 td { style: "padding:12px 16px;font-size:12px;color:var(--muted);",
-                                                    "{m.joined_at.as_deref().unwrap_or(\"-\")}"
+                                                    "{m.joined_at_display()}"
                                                 }
                                             }
                                         }

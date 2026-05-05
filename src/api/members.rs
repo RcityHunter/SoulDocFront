@@ -9,8 +9,19 @@ pub struct Member {
     pub username: Option<String>,
     pub role: Option<String>,
     pub status: Option<String>,
-    #[serde(alias = "accepted_at", alias = "created_at")]
     pub joined_at: Option<String>,
+    pub accepted_at: Option<String>,
+    pub created_at: Option<String>,
+}
+
+impl Member {
+    pub fn joined_at_display(&self) -> &str {
+        self.joined_at
+            .as_deref()
+            .or(self.accepted_at.as_deref())
+            .or(self.created_at.as_deref())
+            .unwrap_or("-")
+    }
 }
 
 #[derive(Deserialize)]

@@ -378,7 +378,7 @@ pub fn Members() -> Element {
                                                 let display = m.username.as_deref().unwrap_or(m.email.as_deref().unwrap_or("?"));
                                                 let email = m.email.as_deref().unwrap_or("-");
                                                 let role = m.role.as_deref().unwrap_or("member");
-                                                let joined = m.joined_at.as_deref().unwrap_or("-");
+                                                let joined = m.joined_at_display();
                                                 let initial = display.chars().next().unwrap_or('?').to_uppercase().to_string();
                                                 let rc = role_color(role);
                                                 rsx! {
