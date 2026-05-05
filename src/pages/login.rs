@@ -137,7 +137,7 @@ pub fn Login() -> Element {
                                 style: "display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:linear-gradient(45deg,#4285f4,#ea4335,#fbbc05,#34a853);color:#fff;font-size:11px;font-weight:800;",
                                 "G"
                             }
-                            span { "使用 Google / SoulAuth 登录" }
+                            span { "使用 Google 登录" }
                         }
                         div { style: "display:flex;gap:10px;",
                             button { class: "btn w-full", style: "flex:1;justify-content:center;",
