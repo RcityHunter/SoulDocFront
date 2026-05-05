@@ -494,7 +494,7 @@ pub fn Editor() -> Element {
                                                                     document_title: Some(dt), space_id: Some(sp),
                                                                     model: None, target_language: None,
                                                                 }).await {
-                                                                    Ok(_) => ai_msg.set(format!("✅ 「{}」任务已创建", l)),
+                                                                    Ok(_) => ai_msg.set(format!("✅ 「{}」任务已完成，可到 AI 任务中心查看结果", l)),
                                                                     Err(e) => ai_msg.set(format!("❌ 失败：{}", e)),
                                                                 }
                                                                 ai_loading.set(false);
@@ -549,7 +549,7 @@ pub fn Editor() -> Element {
                                                                     document_title: Some(dt), space_id: Some(sp),
                                                                     model: None, target_language: None,
                                                                 }).await {
-                                                                    Ok(_) => ai_msg.set(format!("✅ 「{}」任务已创建", l)),
+                                                                    Ok(_) => ai_msg.set(format!("✅ 「{}」任务已完成，可到 AI 任务中心查看结果", l)),
                                                                     Err(e) => ai_msg.set(format!("❌ 失败：{}", e)),
                                                                 }
                                                                 ai_loading.set(false);

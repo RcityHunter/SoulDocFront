@@ -21,6 +21,7 @@ pub struct AiTask {
     pub status: Option<String>,
     pub progress: Option<i64>,
     pub target_language: Option<String>,
+    pub result: Option<Value>,
     pub created_by: Option<String>,
     pub created_at: Option<String>,
     pub error: Option<String>,

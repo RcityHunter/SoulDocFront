@@ -228,6 +228,20 @@ fn TaskRow(task: tasks_api::AiTask) -> Element {
     let model = task.model.clone().unwrap_or_default();
     let status = task.status.clone().unwrap_or_default();
     let progress = task.progress.unwrap_or(0);
+    let result_content = task
+        .result
+        .as_ref()
+        .and_then(|v| v.get("content"))
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .to_string();
+    let result_title = task
+        .result
+        .as_ref()
+        .and_then(|v| v.get("title"))
+        .and_then(|v| v.as_str())
+        .unwrap_or("AI 生成结果")
+        .to_string();
 
     let id_str = task
         .id
@@ -243,6 +257,12 @@ fn TaskRow(task: tasks_api::AiTask) -> Element {
         "summarize" => ("📝", "摘要"),
         "seo_check" => ("🔍", "SEO"),
         "proofread" => ("✅", "校对"),
+        "outline" => ("📋", "大纲"),
+        "extract_tags" => ("🏷", "标签"),
+        "polish" => ("✨", "润色"),
+        "expand" => ("📝", "扩写"),
+        "compress" => ("📉", "压缩"),
+        "dialog_to_doc" => ("💬", "对话转文档"),
         "faq" => ("❓", "FAQ"),
         other => ("⚡", other),
     };
@@ -256,6 +276,7 @@ fn TaskRow(task: tasks_api::AiTask) -> Element {
     };
 
     let mut acting = use_signal(|| false);
+    let mut show_result = use_signal(|| false);
 
     let do_cancel = {
         let id = id_str.clone();
@@ -308,11 +329,38 @@ fn TaskRow(task: tasks_api::AiTask) -> Element {
             }
             td { style: "padding:12px 16px;text-align:right;",
                 div { style: "display:flex;gap:6px;justify-content:flex-end;",
+                    if status == "completed" && !result_content.is_empty() {
+                        button {
+                            class: "btn btn-sm btn-primary",
+                            onclick: move |_| show_result.set(true),
+                            "查看结果"
+                        }
+                    }
                     if status == "running" {
                         button { class: "btn btn-sm", disabled: acting(), onclick: do_cancel, "取消" }
                     }
                     if status == "failed" || status == "cancelled" {
                         button { class: "btn btn-sm btn-primary", disabled: acting(), onclick: do_retry, "重试" }
+                    }
+                }
+            }
+        }
+        if show_result() {
+            div {
+                style: "position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:220;display:flex;align-items:center;justify-content:center;padding:20px;",
+                onclick: move |_| show_result.set(false),
+                div {
+                    class: "card",
+                    style: "width:min(760px,96vw);max-height:82vh;overflow:auto;padding:22px;",
+                    onclick: move |e| e.stop_propagation(),
+                    div { style: "display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;",
+                        h3 { style: "font-size:16px;font-weight:800;", "{result_title}" }
+                        button { class: "btn btn-sm", onclick: move |_| show_result.set(false), "关闭" }
+                    }
+                    p { style: "font-size:12px;color:var(--muted);margin-bottom:10px;", "当前结果已保存在 AI 任务记录中，后续可复制到文档或标签。" }
+                    pre {
+                        style: "white-space:pre-wrap;background:#0f172a;color:#e2e8f0;border-radius:12px;padding:16px;font-size:13px;line-height:1.7;overflow:auto;",
+                        "{result_content}"
                     }
                 }
             }
