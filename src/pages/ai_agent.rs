@@ -722,8 +722,10 @@ pub fn AiAgent() -> Element {
                                                 scopes: kd.scopes.clone(),
                                                 on_delete: move |del_id: String| {
                                                     spawn(async move {
-                                                        let _ = dev_api::delete_api_key(&del_id).await;
-                                                        keys_epoch.set(keys_epoch() + 1);
+                                                        match dev_api::delete_api_key(&del_id).await {
+                                                            Ok(_) => keys_epoch.set(keys_epoch() + 1),
+                                                            Err(e) => action_msg.set(format!("删除失败：{}", e)),
+                                                        }
                                                     });
                                                 },
                                             }
