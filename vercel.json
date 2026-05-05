@@ -1,8 +1,12 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "cargo install dioxus-cli --version 0.7.0 --locked || true; dx build --release; rm -rf vercel-public; mkdir -p vercel-public/docs; cp -a target/dx/soulbook_ui/release/web/public/. vercel-public/docs/",
+  "buildCommand": "cargo install dioxus-cli --version 0.7.0 --locked || true; dx build --release; rm -rf vercel-public; mkdir -p vercel-public/docs; cp -a target/dx/soulbook_ui/release/web/public/. vercel-public/docs/; cp assets/favicon.svg vercel-public/docs/favicon.svg",
   "outputDirectory": "vercel-public",
   "rewrites": [
+    {
+      "source": "/favicon.ico",
+      "destination": "/docs/favicon.svg"
+    },
     {
       "source": "/api/:path*",
       "destination": "http://47.236.185.219/api/:path*"
