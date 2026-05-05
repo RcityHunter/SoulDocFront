@@ -8,6 +8,8 @@ pub enum Route {
     // Auth — no layout wrapper
     #[route("/login")]
     Login {},
+    #[route("/sso")]
+    Sso {},
     #[route("/install")]
     Install {},
 
