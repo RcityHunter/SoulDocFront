@@ -1,5 +1,5 @@
 ﻿use crate::routes::Route;
-use crate::state::AuthState;
+use crate::state::{AuthState, WorkspaceKind, WorkspaceState};
 use dioxus::prelude::*;
 use gloo_storage::{LocalStorage, Storage};
 
@@ -155,15 +155,19 @@ pub fn Sidebar() -> Element {
 #[component]
 fn WorkspaceSwitcher(open: Signal<bool>) -> Element {
     let mut open = open;
-    let mut current = use_signal(|| "team_soulbook");
+    let mut workspace = use_context::<Signal<WorkspaceState>>();
     let navigator = use_navigator();
 
-    let (ws_letter, ws_name, ws_color) = match current() {
-        "personal" => ("我", "个人工作区", "#64748b"),
-        "team_soulbook" => ("S", "SoulBook 团队", "#4f46e5"),
-        "team_dev" => ("P", "产品研发团队", "#2563eb"),
-        "team_mkt" => ("M", "Marketing", "#7c3aed"),
-        _ => ("S", "SoulBook 团队", "#4f46e5"),
+    let ws_snapshot = workspace.read().clone();
+    let active_team = ws_snapshot.active_team().cloned();
+    let (ws_letter, ws_name, ws_color) = if let Some(team) = &active_team {
+        (
+            workspace_initial(&team.name),
+            team.name.clone(),
+            "#4f46e5".to_string(),
+        )
+    } else {
+        ("我".to_string(), "个人工作区".to_string(), "#64748b".to_string())
     };
     let chevron_cls = if open() {
         "ws-chevron open"
@@ -195,27 +199,43 @@ fn WorkspaceSwitcher(open: Signal<bool>) -> Element {
 
                     WsItem {
                         icon: "我", icon_bg: "#64748b", name: "个人工作区", badge: "个人",
-                        selected: current() == "personal",
-                        onclick: move |_| { current.set("personal"); open.set(false); }
+                        selected: workspace.read().active_kind == WorkspaceKind::Personal,
+                        onclick: move |_| {
+                            workspace.write().select_personal();
+                            open.set(false);
+                        }
                     }
 
                     div { class: "ws-separator" }
                     p { class: "ws-group-label", "团队" }
 
-                    WsItem {
-                        icon: "S", icon_bg: "#4f46e5", name: "SoulBook 团队", badge: "管理员",
-                        selected: current() == "team_soulbook",
-                        onclick: move |_| { current.set("team_soulbook"); open.set(false); }
-                    }
-                    WsItem {
-                        icon: "P", icon_bg: "#2563eb", name: "产品研发团队", badge: "成员",
-                        selected: current() == "team_dev",
-                        onclick: move |_| { current.set("team_dev"); open.set(false); }
-                    }
-                    WsItem {
-                        icon: "M", icon_bg: "#7c3aed", name: "Marketing", badge: "成员",
-                        selected: current() == "team_mkt",
-                        onclick: move |_| { current.set("team_mkt"); open.set(false); }
+                    if workspace.read().teams.is_empty() {
+                        p { style: "padding:8px 10px 10px;color:var(--muted);font-size:12px;line-height:1.5;",
+                            "暂无团队。创建团队或接受邀请后，会在这里显示。"
+                        }
+                    } else {
+                        for team in workspace.read().teams.clone() {
+                            {
+                                let team_id = team.id.clone();
+                                let team_name = team.name.clone();
+                                let team_role = team.role.clone();
+                                let initial = workspace_initial(&team_name);
+                                let selected = workspace.read().active_team_id.as_deref() == Some(team_id.as_str());
+                                rsx! {
+                                    WsItem {
+                                        icon: initial,
+                                        icon_bg: "#4f46e5",
+                                        name: team_name,
+                                        badge: team_role,
+                                        selected,
+                                        onclick: move |_| {
+                                            workspace.write().select_team(&team_id);
+                                            open.set(false);
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
 
                     div { class: "ws-separator" }
@@ -239,11 +259,11 @@ fn WorkspaceSwitcher(open: Signal<bool>) -> Element {
                             let navigator = navigator.clone();
                             move |_| {
                                 open.set(false);
-                                navigator.push(Route::Members {});
+                                navigator.push(Route::Notifications {});
                             }
                         },
-                        span { style: "font-size:14px;", "⚙" }
-                        "管理团队"
+                        span { style: "font-size:14px;", "↪" }
+                        "加入团队"
                     }
                 }
             }
@@ -253,10 +273,10 @@ fn WorkspaceSwitcher(open: Signal<bool>) -> Element {
 
 #[component]
 fn WsItem(
-    icon: &'static str,
+    icon: String,
     icon_bg: &'static str,
-    name: &'static str,
-    badge: &'static str,
+    name: String,
+    badge: String,
     selected: bool,
     onclick: EventHandler<MouseEvent>,
 ) -> Element {
@@ -279,4 +299,11 @@ fn WsItem(
             }
         }
     }
+}
+
+fn workspace_initial(name: &str) -> String {
+    name.chars()
+        .find(|ch| !ch.is_whitespace())
+        .map(|ch| ch.to_uppercase().to_string())
+        .unwrap_or_else(|| "T".to_string())
 }

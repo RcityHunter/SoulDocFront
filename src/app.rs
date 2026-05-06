@@ -1,5 +1,5 @@
 use crate::routes::Route;
-use crate::state::{AuthState, CreateDocTrigger};
+use crate::state::{AuthState, CreateDocTrigger, WorkspaceState};
 use dioxus::prelude::*;
 use dioxus::router::components::HistoryProvider;
 use dioxus::web::WebHistory;
@@ -12,6 +12,7 @@ const DOCS_BASE_PATH: &str = "/docs";
 pub fn App() -> Element {
     let mut auth = use_context_provider(|| Signal::new(AuthState::init()));
     use_context_provider(|| Signal::new(CreateDocTrigger(false)));
+    use_context_provider(|| Signal::new(WorkspaceState::init()));
 
     use_effect(move || {
         if auth.read().token.is_some() && auth.read().user.is_none() {
