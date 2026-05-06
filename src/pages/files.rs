@@ -417,7 +417,8 @@ pub fn Files() -> Element {
                                                             button {
                                                                 style: "flex:1;padding:7px;text-align:center;font-size:12px;color:var(--primary);text-decoration:none;border-right:1px solid var(--line);",
                                                                 onclick: move |_| {
-                                                                    let js = download_file_js(&furl, &fname);
+                                                                    let token = crate::api::get_token().unwrap_or_default();
+                                                                    let js = download_file_js(&furl, &fname, &token);
                                                                     let _ = document::eval(&js);
                                                                 },
                                                                 "下载"
@@ -554,12 +555,13 @@ fn dom_id_fragment(input: &str) -> String {
         .collect()
 }
 
-fn download_file_js(url: &str, filename: &str) -> String {
+fn download_file_js(url: &str, filename: &str, token: &str) -> String {
     let url_json = serde_json::to_string(url).unwrap_or_else(|_| "\"\"".to_string());
     let filename_json = serde_json::to_string(filename).unwrap_or_else(|_| "\"download\"".to_string());
+    let token_json = serde_json::to_string(token).unwrap_or_else(|_| "\"\"".to_string());
     format!(
         r#"(async function(){{
-  const token = localStorage.getItem('soulbook_token') || localStorage.getItem('souldoc_token') || localStorage.getItem('jwt_token') || localStorage.getItem('auth_token') || localStorage.getItem('token') || '';
+  const token = {token_json};
   const resp = await fetch({url_json}, {{ headers: {{ Authorization: 'Bearer ' + token }} }});
   if (!resp.ok) {{
     alert('下载失败：HTTP ' + resp.status);
@@ -746,8 +748,14 @@ mod tests {
             "file-preview-file-upload-spsx6o7y1n9g82vfsiuy"
         );
 
-        let js = download_file_js("/api/docs/files/file_upload:abc/download", "a\"b.jpg");
+        let js = download_file_js(
+            "/api/docs/files/file_upload:abc/download",
+            "a\"b.jpg",
+            "jwt-from-rust",
+        );
         assert!(js.contains("fetch(\"/api/docs/files/file_upload:abc/download\""));
+        assert!(js.contains("const token = \"jwt-from-rust\""));
+        assert!(!js.contains("localStorage.getItem"));
         assert!(js.contains("Authorization: 'Bearer ' + token"));
         assert!(js.contains("a.download = \"a\\\"b.jpg\""));
     }
