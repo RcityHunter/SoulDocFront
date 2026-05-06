@@ -1,20 +1,22 @@
-﻿use crate::api::files as files_api;
+use crate::api::files as files_api;
 use crate::api::spaces as spaces_api;
+use crate::state::AuthState;
 use dioxus::prelude::*;
 
 // ── Component ────────────────────────────────────────────────────────────────
 
 #[component]
 pub fn Files() -> Element {
+    let auth = use_context::<Signal<AuthState>>();
     let spaces_res = use_resource(|| async move { spaces_api::list_spaces(1, 50).await });
-    let mut selected_id   = use_signal(|| String::new());
+    let mut selected_id = use_signal(|| String::new());
     let mut selected_name = use_signal(|| String::new());
-    let mut refresh       = use_signal(|| 0u32);
-    let mut uploading     = use_signal(|| false);
-    let mut upload_msg    = use_signal(|| String::new());
-    let mut active_tab    = use_signal(|| "all".to_string());
-    let active_nav     = use_signal(|| "all".to_string());  // left sidebar nav
-    let mut grid_view  = use_signal(|| true);
+    let mut refresh = use_signal(|| 0u32);
+    let mut uploading = use_signal(|| false);
+    let mut upload_msg = use_signal(|| String::new());
+    let mut active_tab = use_signal(|| "all".to_string());
+    let mut active_nav = use_signal(|| "all".to_string()); // left sidebar nav
+    let mut grid_view = use_signal(|| true);
     let mut selected_files: Signal<Vec<String>> = use_signal(|| vec![]);
 
     use_effect(move || {
@@ -34,10 +36,12 @@ pub fn Files() -> Element {
     });
 
     let files_res = use_resource(move || {
-        let id  = selected_id.read().clone();
-        let _r  = *refresh.read();
+        let id = selected_id.read().clone();
+        let _r = *refresh.read();
         async move {
-            if id.is_empty() { return Ok(vec![]); }
+            if id.is_empty() {
+                return Ok(vec![]);
+            }
             files_api::list_files(&id).await
         }
     });
@@ -46,7 +50,9 @@ pub fn Files() -> Element {
 
     let do_upload = move |_| {
         let space_id = selected_id.read().clone();
-        if space_id.is_empty() { return; }
+        if space_id.is_empty() {
+            return;
+        }
         let token = crate::api::get_token().unwrap_or_default();
         uploading.set(true);
         upload_msg.set(String::new());
@@ -86,8 +92,14 @@ pub fn Files() -> Element {
             match eval.recv::<String>().await {
                 Ok(msg) if msg.starts_with("done:") => {
                     let parts: Vec<&str> = msg.splitn(3, ':').collect();
-                    let ok   = parts.get(1).and_then(|s| s.parse::<u32>().ok()).unwrap_or(0);
-                    let fail = parts.get(2).and_then(|s| s.parse::<u32>().ok()).unwrap_or(0);
+                    let ok = parts
+                        .get(1)
+                        .and_then(|s| s.parse::<u32>().ok())
+                        .unwrap_or(0);
+                    let fail = parts
+                        .get(2)
+                        .and_then(|s| s.parse::<u32>().ok())
+                        .unwrap_or(0);
                     upload_msg.set(if fail == 0 {
                         format!("成功上传 {} 个文件", ok)
                     } else {
@@ -116,20 +128,20 @@ pub fn Files() -> Element {
                 // Quick Access
                 div { style: "padding:20px 12px 8px;",
                     p { style: "font-size:10.5px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;padding:0 8px;", "快速访问" }
-                    {sidebar_nav_item("all",      "📁", "全部文件",  active_nav.read().as_str())}
-                    {sidebar_nav_item("recent",   "🕐", "最近上传",  active_nav.read().as_str())}
-                    {sidebar_nav_item("mine",     "👤", "我上传的",  active_nav.read().as_str())}
-                    {sidebar_nav_item("ref",      "🔗", "被引用的",  active_nav.read().as_str())}
+                    {sidebar_nav_item("all",      "📁", "全部文件",  active_nav.read().as_str(), active_nav, active_tab)}
+                    {sidebar_nav_item("recent",   "🕐", "最近上传",  active_nav.read().as_str(), active_nav, active_tab)}
+                    {sidebar_nav_item("mine",     "👤", "我上传的",  active_nav.read().as_str(), active_nav, active_tab)}
+                    {sidebar_nav_item("ref",      "🔗", "被引用的",  active_nav.read().as_str(), active_nav, active_tab)}
                 }
 
                 // File types
                 div { style: "padding:8px 12px;",
                     p { style: "font-size:10.5px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;padding:0 8px;", "文件类型" }
-                    {sidebar_nav_item("img",      "🖼️", "图片",     active_nav.read().as_str())}
-                    {sidebar_nav_item("doc",      "📄", "文档",     active_nav.read().as_str())}
-                    {sidebar_nav_item("vid",      "🎬", "视频",     active_nav.read().as_str())}
-                    {sidebar_nav_item("code",     "💻", "代码",     active_nav.read().as_str())}
-                    {sidebar_nav_item("archive",  "📦", "压缩包",   active_nav.read().as_str())}
+                    {sidebar_nav_item("image",    "🖼️", "图片",     active_nav.read().as_str(), active_nav, active_tab)}
+                    {sidebar_nav_item("doc",      "📄", "文档",     active_nav.read().as_str(), active_nav, active_tab)}
+                    {sidebar_nav_item("video",    "🎬", "视频",     active_nav.read().as_str(), active_nav, active_tab)}
+                    {sidebar_nav_item("code",     "💻", "代码",     active_nav.read().as_str(), active_nav, active_tab)}
+                    {sidebar_nav_item("archive",  "📦", "压缩包",   active_nav.read().as_str(), active_nav, active_tab)}
                 }
 
                 // Spaces list
@@ -157,6 +169,8 @@ pub fn Files() -> Element {
                                                     selected_id.set(id.clone());
                                                     selected_name.set(name.clone());
                                                     upload_msg.set(String::new());
+                                                    active_nav.set("all".to_string());
+                                                    active_tab.set("all".to_string());
                                                 },
                                                 span { style: "font-size:14px;opacity:.7;", "□" }
                                                 span { style: "overflow:hidden;text-overflow:ellipsis;white-space:nowrap;", "{name}" }
@@ -202,7 +216,9 @@ pub fn Files() -> Element {
                     div { style: "display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);",
                         span { "文件" }
                         span { "›" }
-                        span { style: "color:var(--text2);font-weight:500;", "全部文件" }
+                        span { style: "color:var(--text2);font-weight:500;", "{selected_name.read()}" }
+                        span { "›" }
+                        span { style: "color:var(--text2);font-weight:500;", "{active_nav_label(active_nav.read().as_str())}" }
                     }
                 }
 
@@ -268,14 +284,13 @@ pub fn Files() -> Element {
                             }
                         },
                         Some(Ok(files)) => {
-                            let cur_tab = active_tab.read().clone();
-                            let filtered: Vec<_> = match cur_tab.as_str() {
-                                "image" => files.iter().filter(|f| f.file_type == "image").cloned().collect(),
-                                "doc"   => files.iter().filter(|f| matches!(f.file_type.as_str(), "pdf" | "doc" | "docx" | "spreadsheet")).cloned().collect(),
-                                "video" => files.iter().filter(|f| f.file_type == "video").cloned().collect(),
-                                "other" => files.iter().filter(|f| !matches!(f.file_type.as_str(), "image" | "pdf" | "doc" | "docx" | "spreadsheet" | "video")).cloned().collect(),
-                                _       => files.clone(),
+                            let current_user_id = auth.read().user.as_ref().map(|u| u.id.clone());
+                            let active_filter = if active_nav.read().as_str() == "all" {
+                                active_tab.read().clone()
+                            } else {
+                                active_nav.read().clone()
                             };
+                            let filtered = filter_files_for_view(files, &active_filter, current_user_id.as_deref());
 
                             if filtered.is_empty() {
                                 rsx! {
@@ -375,14 +390,29 @@ pub fn Files() -> Element {
 
 // ── Helper: left sidebar nav item ────────────────────────────────────────────
 
-fn sidebar_nav_item(key: &str, icon: &str, label: &str, active: &str) -> Element {
+fn sidebar_nav_item(
+    key: &'static str,
+    icon: &'static str,
+    label: &'static str,
+    active: &str,
+    mut active_nav: Signal<String>,
+    mut active_tab: Signal<String>,
+) -> Element {
     let is_active = key == active;
+    let tab_key = match key {
+        "image" | "doc" | "video" => key,
+        _ => "all",
+    };
     rsx! {
-        div {
+        button {
             style: if is_active {
-                "display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;background:var(--primary-light);color:var(--primary);font-size:13px;font-weight:500;margin-bottom:2px;cursor:pointer;"
+                "display:flex;align-items:center;gap:8px;width:100%;padding:7px 10px;border-radius:8px;background:var(--primary-light);color:var(--primary);font-size:13px;font-weight:500;margin-bottom:2px;cursor:pointer;border:none;text-align:left;"
             } else {
-                "display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;background:transparent;color:var(--text3);font-size:13px;margin-bottom:2px;cursor:pointer;"
+                "display:flex;align-items:center;gap:8px;width:100%;padding:7px 10px;border-radius:8px;background:transparent;color:var(--text3);font-size:13px;margin-bottom:2px;cursor:pointer;border:none;text-align:left;"
+            },
+            onclick: move |_| {
+                active_nav.set(key.to_string());
+                active_tab.set(tab_key.to_string());
             },
             span { style: "font-size:15px;", "{icon}" }
             span { "{label}" }
@@ -431,13 +461,175 @@ fn format_size(bytes: i64) -> String {
 
 fn file_icon(file_type: &str) -> &'static str {
     match file_type {
-        "pdf"         => "📄",
-        "video"       => "🎬",
-        "audio"       => "🎵",
-        "archive"     => "📦",
+        "pdf" => "📄",
+        "video" => "🎬",
+        "audio" => "🎵",
+        "archive" => "📦",
         "spreadsheet" => "📊",
         "doc" | "docx" => "📝",
-        "image"       => "🖼️",
-        _             => "📎",
+        "image" => "🖼️",
+        _ => "📎",
+    }
+}
+
+fn active_nav_label(key: &str) -> &'static str {
+    match key {
+        "recent" => "最近上传",
+        "mine" => "我上传的",
+        "ref" => "被引用的",
+        "image" => "图片",
+        "doc" => "文档",
+        "video" => "视频",
+        "code" => "代码",
+        "archive" => "压缩包",
+        "other" => "其他",
+        _ => "全部文件",
+    }
+}
+
+fn is_document_file(file: &files_api::FileItem) -> bool {
+    matches!(
+        file.file_type.as_str(),
+        "pdf" | "doc" | "docx" | "document" | "spreadsheet" | "presentation"
+    ) || file.mime_type.contains("pdf")
+        || file.mime_type.contains("word")
+        || file.mime_type.contains("document")
+        || file.mime_type.contains("spreadsheet")
+        || file.mime_type.contains("presentation")
+}
+
+fn is_code_file(file: &files_api::FileItem) -> bool {
+    matches!(
+        file.mime_type.as_str(),
+        "application/json" | "application/xml"
+    ) || matches!(
+        file.mime_type.as_str(),
+        "text/html" | "text/css" | "text/javascript"
+    )
+}
+
+fn filter_files_for_view(
+    files: &[files_api::FileItem],
+    filter: &str,
+    current_user_id: Option<&str>,
+) -> Vec<files_api::FileItem> {
+    let mut filtered: Vec<_> = match filter {
+        "image" => files
+            .iter()
+            .filter(|f| f.file_type == "image" || f.mime_type.starts_with("image/"))
+            .cloned()
+            .collect(),
+        "doc" => files
+            .iter()
+            .filter(|f| is_document_file(f))
+            .cloned()
+            .collect(),
+        "video" => files
+            .iter()
+            .filter(|f| f.file_type == "video" || f.mime_type.starts_with("video/"))
+            .cloned()
+            .collect(),
+        "code" => files.iter().filter(|f| is_code_file(f)).cloned().collect(),
+        "archive" => files
+            .iter()
+            .filter(|f| {
+                f.file_type == "archive"
+                    || f.mime_type.contains("zip")
+                    || f.mime_type.contains("tar")
+                    || f.mime_type.contains("gzip")
+            })
+            .cloned()
+            .collect(),
+        "mine" => files
+            .iter()
+            .filter(|f| current_user_id.is_some_and(|user_id| f.uploaded_by == user_id))
+            .cloned()
+            .collect(),
+        "ref" => files
+            .iter()
+            .filter(|f| f.document_id.as_ref().is_some_and(|id| !id.is_empty()))
+            .cloned()
+            .collect(),
+        "other" => files
+            .iter()
+            .filter(|f| {
+                f.file_type != "image"
+                    && f.file_type != "video"
+                    && f.file_type != "archive"
+                    && !is_document_file(f)
+                    && !is_code_file(f)
+            })
+            .cloned()
+            .collect(),
+        _ => files.to_vec(),
+    };
+
+    if filter == "recent" {
+        filtered.sort_by(|a, b| b.created_at.cmp(&a.created_at));
+    }
+
+    filtered
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::api::files::FileItem;
+
+    fn file(
+        id: &str,
+        file_type: &str,
+        mime_type: &str,
+        uploaded_by: &str,
+        document_id: Option<&str>,
+    ) -> FileItem {
+        FileItem {
+            id: id.to_string(),
+            filename: format!("{id}.bin"),
+            original_name: format!("{id}.bin"),
+            file_size: 1,
+            file_type: file_type.to_string(),
+            mime_type: mime_type.to_string(),
+            url: format!("/api/files/{id}/download"),
+            thumbnail_url: None,
+            space_id: Some("space:514".to_string()),
+            document_id: document_id.map(ToString::to_string),
+            uploaded_by: uploaded_by.to_string(),
+            created_at: "2026-05-06T00:00:00Z".to_string(),
+        }
+    }
+
+    #[test]
+    fn filter_files_for_view_matches_sidebar_categories() {
+        let files = vec![
+            file("img", "image", "image/png", "u1", None),
+            file(
+                "doc",
+                "document",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                "u2",
+                None,
+            ),
+            file("video", "video", "video/mp4", "u2", None),
+            file("code", "other", "application/json", "u2", None),
+            file(
+                "zip",
+                "archive",
+                "application/zip",
+                "u2",
+                Some("document:d1"),
+            ),
+        ];
+
+        assert_eq!(filter_files_for_view(&files, "image", Some("u1")).len(), 1);
+        assert_eq!(filter_files_for_view(&files, "doc", Some("u1")).len(), 1);
+        assert_eq!(filter_files_for_view(&files, "video", Some("u1")).len(), 1);
+        assert_eq!(filter_files_for_view(&files, "code", Some("u1")).len(), 1);
+        assert_eq!(
+            filter_files_for_view(&files, "archive", Some("u1")).len(),
+            1
+        );
+        assert_eq!(filter_files_for_view(&files, "mine", Some("u1")).len(), 1);
+        assert_eq!(filter_files_for_view(&files, "ref", Some("u1")).len(), 1);
     }
 }
