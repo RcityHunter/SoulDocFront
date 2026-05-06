@@ -63,8 +63,8 @@ pub fn Files() -> Element {
     var ok = 0, fail = 0;
     for (var i = 0; i < files.length; i++) {{
       var form = new FormData();
-      form.append('file', files[i]);
       form.append('space_id', '{space_id}');
+      form.append('file', files[i]);
       try {{
         var r = await fetch('/api/docs/files', {{
           method: 'POST',
