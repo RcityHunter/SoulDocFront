@@ -46,6 +46,67 @@ pub fn Files() -> Element {
         }
     });
 
+    use_effect(move || {
+        let Some(Ok(files)) = &*files_res.read() else {
+            return;
+        };
+
+        let token = crate::api::get_token().unwrap_or_default();
+        if token.is_empty() {
+            return;
+        }
+
+        let current_user_id = auth.read().user.as_ref().map(|u| u.id.clone());
+        let active_filter = if active_nav.read().as_str() == "all" {
+            active_tab.read().clone()
+        } else {
+            active_nav.read().clone()
+        };
+        let previews: Vec<_> = filter_files_for_view(files, &active_filter, current_user_id.as_deref())
+            .into_iter()
+            .filter(|file| file.file_type == "image")
+            .map(|file| {
+                serde_json::json!({
+                    "element_id": file_preview_element_id(&file.id),
+                    "url": file.url,
+                })
+            })
+            .collect();
+
+        if previews.is_empty() {
+            return;
+        }
+
+        let Ok(token_json) = serde_json::to_string(&token) else {
+            return;
+        };
+        let Ok(previews_json) = serde_json::to_string(&previews) else {
+            return;
+        };
+        let js = format!(
+            r#"(async function(){{
+  const token = {token_json};
+  const previews = {previews_json};
+  for (const item of previews) {{
+    const el = document.getElementById(item.element_id);
+    if (!el || el.dataset.loadedSrc === item.url) continue;
+    try {{
+      const resp = await fetch(item.url, {{ headers: {{ Authorization: 'Bearer ' + token }} }});
+      if (!resp.ok) continue;
+      const blob = await resp.blob();
+      const oldUrl = el.dataset.blobUrl;
+      const blobUrl = URL.createObjectURL(blob);
+      el.src = blobUrl;
+      el.dataset.loadedSrc = item.url;
+      el.dataset.blobUrl = blobUrl;
+      if (oldUrl) URL.revokeObjectURL(oldUrl);
+    }} catch (_) {{}}
+  }}
+}})();"#
+        );
+        let _ = document::eval(&js);
+    });
+
     let mut deleting = use_signal(|| String::new());
 
     let do_upload = move |_| {
@@ -319,6 +380,7 @@ pub fn Files() -> Element {
                                                 let ftype = f.file_type.clone();
                                                 let fsize = f.file_size;
                                                 let is_image = ftype == "image";
+                                                let preview_id = file_preview_element_id(&fid);
                                                 rsx! {
                                                     div {
                                                         style: "position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel);display:flex;flex-direction:column;",
@@ -340,7 +402,7 @@ pub fn Files() -> Element {
                                                         // Preview / icon
                                                         div { style: "height:110px;background:var(--panel3);display:flex;align-items:center;justify-content:center;overflow:hidden;",
                                                             if is_image {
-                                                                img { src: "{furl}", style: "width:100%;height:100%;object-fit:cover;" }
+                                                                img { id: "{preview_id}", style: "width:100%;height:100%;object-fit:cover;" }
                                                             } else {
                                                                 span { style: "font-size:42px;", "{file_icon(&ftype)}" }
                                                             }
@@ -352,9 +414,12 @@ pub fn Files() -> Element {
                                                         }
                                                         // Actions
                                                         div { style: "display:flex;border-top:1px solid var(--line);",
-                                                            a {
-                                                                href: "{furl}", target: "_blank",
+                                                            button {
                                                                 style: "flex:1;padding:7px;text-align:center;font-size:12px;color:var(--primary);text-decoration:none;border-right:1px solid var(--line);",
+                                                                onclick: move |_| {
+                                                                    let js = download_file_js(&furl, &fname);
+                                                                    let _ = document::eval(&js);
+                                                                },
                                                                 "下载"
                                                             }
                                                             button {
@@ -470,6 +535,47 @@ fn file_icon(file_type: &str) -> &'static str {
         "image" => "🖼️",
         _ => "📎",
     }
+}
+
+fn file_preview_element_id(file_id: &str) -> String {
+    format!("file-preview-{}", dom_id_fragment(file_id))
+}
+
+fn dom_id_fragment(input: &str) -> String {
+    input
+        .chars()
+        .map(|ch| {
+            if ch.is_ascii_alphanumeric() {
+                ch
+            } else {
+                '-'
+            }
+        })
+        .collect()
+}
+
+fn download_file_js(url: &str, filename: &str) -> String {
+    let url_json = serde_json::to_string(url).unwrap_or_else(|_| "\"\"".to_string());
+    let filename_json = serde_json::to_string(filename).unwrap_or_else(|_| "\"download\"".to_string());
+    format!(
+        r#"(async function(){{
+  const token = localStorage.getItem('soulbook_token') || localStorage.getItem('souldoc_token') || localStorage.getItem('jwt_token') || localStorage.getItem('auth_token') || localStorage.getItem('token') || '';
+  const resp = await fetch({url_json}, {{ headers: {{ Authorization: 'Bearer ' + token }} }});
+  if (!resp.ok) {{
+    alert('下载失败：HTTP ' + resp.status);
+    return;
+  }}
+  const blob = await resp.blob();
+  const blobUrl = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = blobUrl;
+  a.download = {filename_json};
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(function() {{ URL.revokeObjectURL(blobUrl); }}, 1000);
+}})();"#
+    )
 }
 
 fn active_nav_label(key: &str) -> &'static str {
@@ -631,5 +737,18 @@ mod tests {
         );
         assert_eq!(filter_files_for_view(&files, "mine", Some("u1")).len(), 1);
         assert_eq!(filter_files_for_view(&files, "ref", Some("u1")).len(), 1);
+    }
+
+    #[test]
+    fn secure_file_helpers_generate_safe_dom_ids_and_fetch_downloads() {
+        assert_eq!(
+            file_preview_element_id("file_upload:spsx6o7y1n9g82vfsiuy"),
+            "file-preview-file-upload-spsx6o7y1n9g82vfsiuy"
+        );
+
+        let js = download_file_js("/api/docs/files/file_upload:abc/download", "a\"b.jpg");
+        assert!(js.contains("fetch(\"/api/docs/files/file_upload:abc/download\""));
+        assert!(js.contains("Authorization: 'Bearer ' + token"));
+        assert!(js.contains("a.download = \"a\\\"b.jpg\""));
     }
 }
